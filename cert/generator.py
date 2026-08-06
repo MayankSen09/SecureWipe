@@ -357,7 +357,7 @@ def generate_certificate(
     report_data["Blockchain Block Hash"] = block_hash
 
     # ── QR code pointing to verification portal ──
-    base_url = os.environ.get("VERIFY_BASE_URL", "http://localhost:8000/verify")
+    base_url = os.environ.get("VERIFY_BASE_URL", "https://secure-wipe-psi.vercel.app/verify")
     verify_url = f"{base_url}?hash={block_hash}"
     tmp_dir = Path(tempfile.mkdtemp())
     qr_path = _make_qr_image(verify_url, tmp_dir)
