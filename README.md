@@ -42,46 +42,54 @@ python -m venv venv
 pip install -r requirements.txt
 ```
 
+### 2. End-to-End Demo Script (Quick Verification)
+
+Run the automated demonstration script to test drive detection, sanitization, PDF generation, and blockchain verification in seconds:
+
+```powershell
+.\venv\Scripts\python.exe demo.py
+```
+
 ---
 
 ## 🚀 How to Run
 
-### Option A: Interactive Desktop Application (GUI)
+### Option A: End-to-End Automated Pipeline Demo
+Run the complete automated workflow (detection → zeroing → confidence calculation → PDF render → ledger anchor):
+
+```powershell
+.\venv\Scripts\python.exe demo.py
+```
+
+### Option B: Interactive Desktop Application (GUI)
 Launch the dark-themed desktop wizard with drive selector and live wiping progress:
 
 ```powershell
-python securewipe.py --gui --mock
+.\venv\Scripts\python.exe securewipe.py --gui --mock
 ```
 
-### Option B: Fast Command-Line Tool (CLI)
+### Option C: Fast Command-Line Tool (CLI)
 Run interactive sanitization directly in your terminal:
 
 ```powershell
-python securewipe.py --cli --mock
+.\venv\Scripts\python.exe securewipe.py --cli --mock
 ```
 
-### Option C: Web Suite & Verification Portal
+### Option D: Web Suite & Verification Portal
 Start the FastAPI server to access the live web verification portal:
 
 ```powershell
-python -m uvicorn api.app:app --host 0.0.0.0 --port 8000
+.\venv\Scripts\python.exe -m uvicorn api.app:app --host 0.0.0.0 --port 8000
 ```
 - 🌐 **Web Portal:** Open [http://localhost:8000](http://localhost:8000) in your browser.
 - 🔍 **Verification API:** `GET /verify?hash=<block_hash>`
 - 📄 **PDF Certificate Endpoint:** `GET /download-pdf?hash=<block_hash>`
 
-### Option D: End-to-End Automated Pipeline Demo
-Run the complete automated workflow (detection → zeroing → confidence calculation → PDF render → ledger anchor):
-
-```powershell
-python demo.py
-```
-
 ### Option E: Android Smartphone Wipe Agent
 Sanitize connected mobile assets via ADB/Fastboot or test in mock mode:
 
 ```powershell
-python android/agent.py --mock
+.\venv\Scripts\python.exe android/agent.py --mock
 ```
 
 ---
