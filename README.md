@@ -20,6 +20,19 @@ It implements **NIST SP 800-88 Rev. 2** (Clear/Purge) and **ANSSI Palier 1/2** s
 - 📄 **PDF & QR Verification:** Automated signed PDF audit certificate generator with embedded offline-scannable SHA-256 QR codes.
 - 📱 **Cross-Platform Mobile Support:** Mobile asset sanitization agent for Android devices via ADB & Fastboot.
 
+## 🛠️ Technology Stack
+
+| Layer | Technology | Usage |
+| :--- | :--- | :--- |
+| **Language** | `Python 3.9+` | Core platform logic, device enumeration & zeroing |
+| **Backend API** | `FastAPI & Uvicorn` | REST API for hash verification, PDF downloads & web suite |
+| **Desktop GUI** | `Tkinter & CustomTkinter` | Cross-platform dark-themed operator wizard |
+| **Web Frontend** | `HTML5 / Vanilla CSS / JS` | High-performance verification portal & audit UI |
+| **Certificate Engine** | `FPDF2 & QRCode` | Signed PDF audit certificate generator with embedded QR |
+| **Trust Ledger** | `SHA-256 Hash-Chain & Solidity` | Immutable local blockchain ledger & Ethereum smart contract |
+| **CLI & Terminal** | `Rich & Argparse` | Terminal formatting, progress bars & prompt handlers |
+| **Mobile Agent** | `ADB & Fastboot` | Mobile asset sanitization for Android devices |
+
 ---
 
 ## ⚡ Quick Start
