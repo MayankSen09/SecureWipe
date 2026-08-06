@@ -9,6 +9,7 @@ import sys
 import platform
 import time
 import re
+import tempfile
 from pathlib import Path
 from datetime import datetime
 from typing import Optional
@@ -142,11 +143,12 @@ def download_pdf(hash: str = Query(..., description="Block hash for PDF download
         except Exception:
             pass
 
-    # Search for pre-generated PDF on disk
+    # Search for pre-generated PDF on disk or tempdir
     serial = matched_block.get("serial", "") if matched_block else clean_hash[:10]
-    for pdf_file in BASE_DIR.glob("SW-*.pdf"):
-        if serial and serial in pdf_file.name:
-            return FileResponse(str(pdf_file), filename=pdf_file.name, media_type="application/pdf")
+    for check_dir in [BASE_DIR, Path(tempfile.gettempdir())]:
+        for pdf_file in check_dir.glob("SW-*.pdf"):
+            if serial and serial in pdf_file.name:
+                return FileResponse(str(pdf_file), filename=pdf_file.name, media_type="application/pdf")
 
     # Dynamically render PDF certificate on the fly
     try:
@@ -185,13 +187,14 @@ def download_pdf(hash: str = Query(..., description="Block hash for PDF download
             hpa_wiped=False
         )
 
+        tmp_output_dir = Path(tempfile.gettempdir())
         pdf_path, _ = generate_certificate(
             operator=operator,
             disk=disk,
             result=result,
             mode_label=method_name,
             verify_pct=10,
-            output_dir=BASE_DIR,
+            output_dir=tmp_output_dir,
             script_dir=BASE_DIR
         )
 
@@ -238,13 +241,14 @@ def generate_cert_api(payload: dict = Body(...)):
             hpa_wiped=False
         )
 
+        tmp_output_dir = Path(tempfile.gettempdir())
         pdf_path, _ = generate_certificate(
             operator=operator,
             disk=disk,
             result=result,
             mode_label=method,
             verify_pct=10,
-            output_dir=BASE_DIR,
+            output_dir=tmp_output_dir,
             script_dir=BASE_DIR
         )
 
