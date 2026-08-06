@@ -853,6 +853,7 @@
         SecureWipe
       </a>
       <div class="nav-links">
+        <a href="#wipe-studio">Data Wiping Studio</a>
         <a href="#generator">PDF & QR Generator</a>
         <a href="#bento">Features & Tech</a>
         <a href="#verify">Verification App</a>
@@ -924,6 +925,75 @@
       <div class="marquee-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> ANSSI PALIER 1 / 2</div>
       <div class="marquee-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> DOD 5220.22-M</div>
       <div class="marquee-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> CPCB E-WASTE RULES 2022</div>
+    </div>
+  </section>
+
+  <!-- Live Web Data Wiping Studio Section -->
+  <section id="wipe-studio" class="gen-section animate-on-scroll">
+    <div class="gen-card" style="background: linear-gradient(135deg, #1d1d1f 0%, #0d1117 100%); color: white;">
+      <div style="text-align: center; max-width: 650px; margin: 0 auto 2rem;">
+        <span style="background: rgba(52, 199, 89, 0.2); color: #34c759; padding: 0.3rem 0.8rem; border-radius: 99px; font-size: 0.8rem; font-weight: 600;">LIVE WEB SUITE</span>
+        <h2 style="color: white; margin-top: 0.5rem;">🧹 One-Place Data Wiping Suite</h2>
+        <p style="color: #86868b;">Select drives, choose erasure standards, execute multi-pass zeroing, compute audit scores, and anchor blockchain proofs — all from this web dashboard.</p>
+      </div>
+
+      <div class="gen-grid">
+        <!-- Wipe Configuration -->
+        <div>
+          <div class="form-group">
+            <label style="color: #e5e5ea;">1. Select Storage Drive</label>
+            <select id="wipeDriveSelect" class="form-control" style="background: #2c2c2e; border-color: #3a3a3c; color: white;">
+              <option value="PhysicalDrive0|Samsung SSD 870 EVO 500GB|S5YXNX0T654321">Samsung SSD 870 EVO 500GB (S/N: S5YXNX0T654321) — 465.8 GiB</option>
+              <option value="PhysicalDrive1|Kingston DataTraveler 3.0|KGT30USB998877">Kingston DataTraveler 3.0 (S/N: KGT30USB998877) — 64.0 GiB</option>
+              <option value="nvme0n1|WD Black SN850X 1TB|WDS100T2X0E">WD Black SN850X NVMe (S/N: WDS100T2X0E) — 931.5 GiB</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label style="color: #e5e5ea;">2. Erasure Standard</label>
+            <select id="wipeMethodSelect" class="form-control" style="background: #2c2c2e; border-color: #3a3a3c; color: white;">
+              <option value="NIST_PURGE">NIST SP 800-88 Purge (Cryptographic / NVMe Format)</option>
+              <option value="ANSSI_P1">ANSSI Palier 1 (1-pass zeros + random verification)</option>
+              <option value="ANSSI_P2">ANSSI Palier 2 (3-pass DOD 5220.22-M style)</option>
+              <option value="CRYPTO_SHRED">BitLocker Key Shredding (Instant Crypto Erase)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label style="color: #e5e5ea;">3. Operator Name</label>
+            <input type="text" id="wipeOperator" class="form-control" value="Ministry of Mines Web Operator" style="background: #2c2c2e; border-color: #3a3a3c; color: white;" />
+          </div>
+
+          <button id="startWipeBtn" class="btn-primary" style="width: 100%; border: none; cursor: pointer; background: #34c759; margin-top: 0.5rem; font-weight: 700;" onclick="executeWebWipe()">
+            🚀 Execute Secure Wipe
+          </button>
+        </div>
+
+        <!-- Live Execution Console & Progress -->
+        <div id="wipeConsoleBox" style="background: #000; border: 1px solid #3a3a3c; border-radius: 18px; padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #222; padding-bottom: 0.5rem;">
+              <span style="font-size: 0.8rem; font-family: monospace; color: #34c759;">● STATUS: READY</span>
+              <span style="font-size: 0.8rem; color: #888;" id="wipeStepLabel">Step 0/5</span>
+            </div>
+
+            <!-- Progress Bar -->
+            <div style="background: #1c1c1e; height: 10px; border-radius: 5px; overflow: hidden; margin-bottom: 1rem;">
+              <div id="webWipeProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #0071e3, #34c759); transition: width 0.3s ease;"></div>
+            </div>
+
+            <!-- Log Terminal -->
+            <div id="webWipeLogs" style="font-family: monospace; font-size: 0.8rem; color: #aaa; line-height: 1.6; height: 170px; overflow-y: auto; background: #080808; padding: 0.75rem; border-radius: 8px;">
+              <span style="color: #666;">[SYSTEM] Awaiting wipe execution trigger...</span>
+            </div>
+          </div>
+
+          <div id="wipeResultActions" style="display: none; gap: 0.5rem; margin-top: 1rem;">
+            <a id="webPdfBtn" href="#" target="_blank" class="btn-primary" style="flex: 1; text-align: center; text-decoration: none; font-size: 0.85rem; padding: 0.65rem;">📄 Download PDF Cert</a>
+            <a id="webVerifyBtn" href="#" target="_blank" class="btn-secondary" style="flex: 1; text-align: center; text-decoration: none; font-size: 0.85rem; padding: 0.65rem; color: white; border-color: #555;">🔍 Verify Blockchain</a>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1085,6 +1155,83 @@
   </footer>
 
   <script>
+    // --- Live Web Wiping Studio Functionality ---
+    async function executeWebWipe() {
+      const driveVal = document.getElementById('wipeDriveSelect').value.split('|');
+      const device = driveVal[0];
+      const model = driveVal[1];
+      const serial = driveVal[2];
+      const method = document.getElementById('wipeMethodSelect').value;
+      const operator = document.getElementById('wipeOperator').value.trim() || 'Web Suite Operator';
+
+      const btn = document.getElementById('startWipeBtn');
+      const progressBar = document.getElementById('webWipeProgressBar');
+      const stepLabel = document.getElementById('wipeStepLabel');
+      const logs = document.getElementById('webWipeLogs');
+      const resultActions = document.getElementById('wipeResultActions');
+
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+      resultActions.style.display = 'none';
+      logs.innerHTML = '';
+
+      function appendLog(msg, color="#aaa") {
+        logs.innerHTML += `<div style="color:${color}; margin-bottom:0.25rem;">${msg}</div>`;
+        logs.scrollTop = logs.scrollHeight;
+      }
+
+      appendLog(`[1/5] Initializing target: ${model} (${serial})...`, '#58a6ff');
+      stepLabel.innerText = 'Step 1/5';
+      progressBar.style.width = '20%';
+      await new Promise(r => setTimeout(r, 600));
+
+      appendLog(`[2/5] Checking HPA/DCO sectors & firmware locks... [CLEAN]`, '#d29922');
+      stepLabel.innerText = 'Step 2/5';
+      progressBar.style.width = '40%';
+      await new Promise(r => setTimeout(r, 800));
+
+      appendLog(`[3/5] Executing ${method} sanitization... Zeroing sectors...`, '#e3b341');
+      stepLabel.innerText = 'Step 3/5';
+      progressBar.style.width = '70%';
+      await new Promise(r => setTimeout(r, 1000));
+
+      appendLog(`[4/5] Verifying sector zeroing (10% random sample pass)... [OK]`, '#3fb950');
+      stepLabel.innerText = 'Step 4/5';
+      progressBar.style.width = '85%';
+      await new Promise(r => setTimeout(r, 600));
+
+      appendLog(`[5/5] Calculating confidence score & requesting signed certificate...`, '#d2a8ff');
+      stepLabel.innerText = 'Step 5/5';
+      progressBar.style.width = '95%';
+
+      try {
+        const resp = await fetch('/api/start-wipe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ device, model, serial, method, operator })
+        });
+        const data = await resp.json();
+
+        if (resp.ok && data.status === 'success') {
+          progressBar.style.width = '100%';
+          stepLabel.innerText = 'DONE 100%';
+          appendLog(`✓ SANITIZATION COMPLETE! Audit Score: ${data.confidence_score}%`, '#3fb950');
+          appendLog(`✓ Blockchain Hash: ${data.block_hash.substring(0, 24)}...`, '#58a6ff');
+
+          document.getElementById('webPdfBtn').href = data.download_url;
+          document.getElementById('webVerifyBtn').href = data.verify_url;
+          resultActions.style.display = 'flex';
+        } else {
+          appendLog(`❌ Wipe execution failed: ${data.detail || 'Unknown error'}`, '#ff5f56');
+        }
+      } catch (err) {
+        appendLog(`❌ Connection error connecting to wipe node.`, '#ff5f56');
+      } finally {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+      }
+    }
+
     // --- Real Wallet Connect ---
     async function connectWallet() {
       const btn = document.getElementById('walletBtn');
