@@ -1291,7 +1291,7 @@
 
         if (response.ok && data.verified) {
           const liveBase = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'https://secure-wipe-psi.vercel.app' : window.location.origin;
-          const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(liveBase + '/verify?hash=' + data.block_hash)}`;
+          const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(liveBase + '/download-pdf?hash=' + data.block_hash)}`;
 
           resultArea.innerHTML = `
             <div style="display: flex; gap: 2rem; align-items: flex-start; flex-wrap: wrap;">
