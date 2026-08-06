@@ -817,14 +817,9 @@
 
     /* ── SaaS Animations ── */
     .animate-on-scroll {
-      opacity: 0;
-      transform: translateY(24px);
-      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    
-    .animate-on-scroll.is-visible {
       opacity: 1;
       transform: translateY(0);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     @media (max-width: 992px) {
@@ -853,7 +848,6 @@
         SecureWipe
       </a>
       <div class="nav-links">
-        <a href="#wipe-studio">Data Wiping Studio</a>
         <a href="#generator">PDF & QR Generator</a>
         <a href="#bento">Features & Tech</a>
         <a href="#verify">Verification App</a>
@@ -928,74 +922,7 @@
     </div>
   </section>
 
-  <!-- Live Web Data Wiping Studio Section -->
-  <section id="wipe-studio" class="gen-section animate-on-scroll">
-    <div class="gen-card" style="background: linear-gradient(135deg, #1d1d1f 0%, #0d1117 100%); color: white;">
-      <div style="text-align: center; max-width: 650px; margin: 0 auto 2rem;">
-        <span style="background: rgba(52, 199, 89, 0.2); color: #34c759; padding: 0.3rem 0.8rem; border-radius: 99px; font-size: 0.8rem; font-weight: 600;">LIVE WEB SUITE</span>
-        <h2 style="color: white; margin-top: 0.5rem;">🧹 One-Place Data Wiping Suite</h2>
-        <p style="color: #86868b;">Select drives, choose erasure standards, execute multi-pass zeroing, compute audit scores, and anchor blockchain proofs — all from this web dashboard.</p>
-      </div>
 
-      <div class="gen-grid">
-        <!-- Wipe Configuration -->
-        <div>
-          <div class="form-group">
-            <label style="color: #e5e5ea;">1. Select Storage Drive</label>
-            <select id="wipeDriveSelect" class="form-control" style="background: #2c2c2e; border-color: #3a3a3c; color: white;">
-              <option value="PhysicalDrive0|Samsung SSD 870 EVO 500GB|S5YXNX0T654321">Samsung SSD 870 EVO 500GB (S/N: S5YXNX0T654321) — 465.8 GiB</option>
-              <option value="PhysicalDrive1|Kingston DataTraveler 3.0|KGT30USB998877">Kingston DataTraveler 3.0 (S/N: KGT30USB998877) — 64.0 GiB</option>
-              <option value="nvme0n1|WD Black SN850X 1TB|WDS100T2X0E">WD Black SN850X NVMe (S/N: WDS100T2X0E) — 931.5 GiB</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label style="color: #e5e5ea;">2. Erasure Standard</label>
-            <select id="wipeMethodSelect" class="form-control" style="background: #2c2c2e; border-color: #3a3a3c; color: white;">
-              <option value="NIST_PURGE">NIST SP 800-88 Purge (Cryptographic / NVMe Format)</option>
-              <option value="ANSSI_P1">ANSSI Palier 1 (1-pass zeros + random verification)</option>
-              <option value="ANSSI_P2">ANSSI Palier 2 (3-pass DOD 5220.22-M style)</option>
-              <option value="CRYPTO_SHRED">BitLocker Key Shredding (Instant Crypto Erase)</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label style="color: #e5e5ea;">3. Operator Name</label>
-            <input type="text" id="wipeOperator" class="form-control" value="Ministry of Mines Web Operator" style="background: #2c2c2e; border-color: #3a3a3c; color: white;" />
-          </div>
-
-          <button id="startWipeBtn" class="btn-primary" style="width: 100%; border: none; cursor: pointer; background: #34c759; margin-top: 0.5rem; font-weight: 700;" onclick="executeWebWipe()">
-            🚀 Execute Secure Wipe
-          </button>
-        </div>
-
-        <!-- Live Execution Console & Progress -->
-        <div id="wipeConsoleBox" style="background: #000; border: 1px solid #3a3a3c; border-radius: 18px; padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between;">
-          <div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #222; padding-bottom: 0.5rem;">
-              <span style="font-size: 0.8rem; font-family: monospace; color: #34c759;">● STATUS: READY</span>
-              <span style="font-size: 0.8rem; color: #888;" id="wipeStepLabel">Step 0/5</span>
-            </div>
-
-            <!-- Progress Bar -->
-            <div style="background: #1c1c1e; height: 10px; border-radius: 5px; overflow: hidden; margin-bottom: 1rem;">
-              <div id="webWipeProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #0071e3, #34c759); transition: width 0.3s ease;"></div>
-            </div>
-
-            <!-- Log Terminal -->
-            <div id="webWipeLogs" style="font-family: monospace; font-size: 0.8rem; color: #aaa; line-height: 1.6; height: 170px; overflow-y: auto; background: #080808; padding: 0.75rem; border-radius: 8px;">
-              <span style="color: #666;">[SYSTEM] Awaiting wipe execution trigger...</span>
-            </div>
-          </div>
-
-          <div id="wipeResultActions" style="display: none; gap: 0.5rem; margin-top: 1rem;">
-            <a id="webPdfBtn" href="#" target="_blank" class="btn-primary" style="flex: 1; text-align: center; text-decoration: none; font-size: 0.85rem; padding: 0.65rem;">📄 Download PDF Cert</a>
-            <a id="webVerifyBtn" href="#" target="_blank" class="btn-secondary" style="flex: 1; text-align: center; text-decoration: none; font-size: 0.85rem; padding: 0.65rem; color: white; border-color: #555;">🔍 Verify Blockchain</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
 
   <!-- Instant PDF & QR Code Generator Section -->
   <section id="generator" class="gen-section animate-on-scroll">
@@ -1030,8 +957,9 @@
             <input type="text" id="genOperator" class="form-control" value="Ministry of Mines IT Inspector" />
           </div>
 
-          <button class="btn-primary" style="width: 100%; border: none; cursor: pointer; margin-top: 0.5rem;" onclick="generatePdfCertificate()">
-            ✨ Generate PDF Certificate + QR Code
+          <button class="btn-primary" style="width: 100%; border: none; cursor: pointer; margin-top: 0.5rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;" onclick="generatePdfCertificate()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            Generate PDF Certificate & QR Code
           </button>
         </div>
 
@@ -1287,8 +1215,12 @@
             <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">SHA-256 Block Hash: <code>${data.block_hash.substring(0, 18)}...</code></p>
             
             <div style="display:flex; gap:0.5rem; width:100%;">
-              <a href="${data.download_url}" target="_blank" class="btn-primary" style="flex:1; text-decoration:none; font-size:0.85rem; padding:0.75rem;">📄 Download PDF</a>
-              <button onclick="openQrModal('${qrUrl}')" class="btn-secondary" style="font-size:0.85rem; padding:0.75rem;">📱 QR Code</button>
+              <a href="${data.download_url}" target="_blank" class="btn-primary" style="flex:1; text-decoration:none; font-size:0.85rem; padding:0.75rem; display:inline-flex; align-items:center; justify-content:center; gap:0.4rem;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> Download PDF
+              </a>
+              <button onclick="openQrModal('${qrUrl}')" class="btn-secondary" style="font-size:0.85rem; padding:0.75rem; display:inline-flex; align-items:center; justify-content:center; gap:0.4rem;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg> QR Code
+              </button>
             </div>
           `;
         } else {
@@ -1360,37 +1292,48 @@
           const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(window.location.origin + '/verify?hash=' + data.block_hash)}`;
 
           resultArea.innerHTML = `
-            <div class="status-badge status-verified">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              Verified Authentic Certificate
-            </div>
+            <div style="display: flex; gap: 2rem; align-items: flex-start; flex-wrap: wrap;">
+              <!-- Prominent QR Code Display -->
+              <div style="background: white; border: 1px solid var(--border-color); border-radius: 20px; padding: 1.25rem; text-align: center; width: 220px;">
+                <img src="${qrUrl}" style="width: 100%; height: auto; border-radius: 12px; display: block;" alt="Certificate QR Code" />
+                <span style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-top: 0.5rem; display: block;">SHA-256 Verified QR</span>
+              </div>
 
-            <div class="detail-grid">
-              <div class="detail-item">
-                <div class="detail-label">Report ID</div>
-                <div class="detail-value">${data.report_id}</div>
-              </div>
-              <div class="detail-item">
-                <div class="detail-label">Wipe Timestamp</div>
-                <div class="detail-value">${data.timestamp_human}</div>
-              </div>
-              <div class="detail-item">
-                <div class="detail-label">Device Serial</div>
-                <div class="detail-value">${data.serial}</div>
-              </div>
-              <div class="detail-item">
-                <div class="detail-label">Sanitization Method</div>
-                <div class="detail-value">${data.method}</div>
-              </div>
-            </div>
+              <!-- Verification Details -->
+              <div style="flex: 1; min-width: 280px;">
+                <div class="status-badge status-verified">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  Verified Authentic Certificate
+                </div>
 
-            <div class="score-container">
-              <div class="score-header">
-                <span>Wipe Confidence Score</span>
-                <span>${data.confidence_score}%</span>
-              </div>
-              <div class="score-bar-bg">
-                <div class="score-bar-fill" style="width: ${data.confidence_score}%"></div>
+                <div class="detail-grid">
+                  <div class="detail-item">
+                    <div class="detail-label">Report ID</div>
+                    <div class="detail-value">${data.report_id}</div>
+                  </div>
+                  <div class="detail-item">
+                    <div class="detail-label">Wipe Timestamp</div>
+                    <div class="detail-value">${data.timestamp_human}</div>
+                  </div>
+                  <div class="detail-item">
+                    <div class="detail-label">Device Serial</div>
+                    <div class="detail-value">${data.serial}</div>
+                  </div>
+                  <div class="detail-item">
+                    <div class="detail-label">Sanitization Method</div>
+                    <div class="detail-value">${data.method}</div>
+                  </div>
+                </div>
+
+                <div class="score-container">
+                  <div class="score-header">
+                    <span>Wipe Confidence Score</span>
+                    <span>${data.confidence_score}%</span>
+                  </div>
+                  <div class="score-bar-bg">
+                    <div class="score-bar-fill" style="width: ${data.confidence_score}%"></div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -1400,20 +1343,13 @@
             <!-- Download PDF & QR Buttons -->
             <div class="action-btn-group">
               <button class="btn-download-pdf" onclick="window.open('/download-pdf?hash=${data.block_hash}', '_blank')">
-                📄 Download Official Signed PDF Certificate
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                Download PDF Certificate
               </button>
               <button class="btn-view-qr" onclick="openQrModal('${qrUrl}')">
-                📱 Scan QR Code
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+                Enlarge QR Code
               </button>
-            </div>
-
-            <!-- Recycler Circular Economy Channel -->
-            <div class="recycler-banner">
-              <div class="recycler-info">
-                <h4>♻️ Circular Economy Channel Verified</h4>
-                <p>This device is certified 100% data-free and ready for eco-recycling or resale.</p>
-              </div>
-              <button class="recycler-btn" onclick="alert('Connected to Partner Network: Attero / Karo Sambhav / Cashify.\\nEstimated Payout: ₹14,500.')">Unlock Resale Payout</button>
             </div>
           `;
         } else {
