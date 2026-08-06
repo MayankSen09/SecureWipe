@@ -81,63 +81,46 @@ def read_root():
 @app.get("/verify")
 def verify_hash(hash: str = Query(..., description="Blockchain block hash to verify")):
     """
-    Consulte trust/chain.json ou génère dynamiquement la preuve pour n'importe quel hash saisi.
+    Consulte trust/chain.json et retourne la preuve UNIQUEMENT si le hash existe dans la blockchain.
     """
-    matched_block = None
+    clean_hash = hash.strip()
 
     if CHAIN_FILE.exists():
         try:
             with open(CHAIN_FILE, "r", encoding="utf-8") as f:
                 chain = json.load(f)
             for block in chain:
-                if block.get("block_hash") == hash:
-                    matched_block = block
-                    break
-        except Exception:
-            pass
+                if block.get("block_hash") == clean_hash:
+                    ts = block.get("timestamp", time.time())
+                    ts_human = time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime(ts))
+                    return {
+                        "verified": True,
+                        "block_hash": block.get("block_hash"),
+                        "prev_hash": block.get("prev_hash"),
+                        "report_id": block.get("report_id", "SW-REC-" + clean_hash[:8].upper()),
+                        "device": block.get("device", "Enterprise Storage Drive"),
+                        "serial": block.get("serial", "SW-SN-" + clean_hash[:6].upper()),
+                        "method": block.get("method", "NIST SP 800-88 Purge"),
+                        "confidence_score": block.get("confidence_score", 100),
+                        "timestamp": ts,
+                        "timestamp_human": ts_human,
+                        "sha256": block.get("sha256", clean_hash),
+                        "cert_pdf_hash": block.get("cert_pdf_hash", clean_hash[:16]),
+                        "pdf_download_url": f"/download-pdf?hash={clean_hash}",
+                        "recycling_eligible": True,
+                        "circular_economy_status": "Verified Safe for Resale & Circular Recycling",
+                        "recommended_recyclers": CERTIFIED_RECYCLERS
+                    }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to read ledger: {str(e)}")
 
-    if matched_block:
-        ts = matched_block.get("timestamp", time.time())
-        ts_human = time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime(ts))
-        return {
-            "verified": True,
-            "block_hash": matched_block.get("block_hash"),
-            "prev_hash": matched_block.get("prev_hash"),
-            "report_id": matched_block.get("report_id", "SW-REC-" + hash[:8].upper()),
-            "device": matched_block.get("device", "Enterprise Storage Drive"),
-            "serial": matched_block.get("serial", "SW-SN-" + hash[:6].upper()),
-            "method": matched_block.get("method", "NIST SP 800-88 Purge"),
-            "confidence_score": matched_block.get("confidence_score", 100),
-            "timestamp": ts,
-            "timestamp_human": ts_human,
-            "sha256": matched_block.get("sha256", hash),
-            "cert_pdf_hash": matched_block.get("cert_pdf_hash", hash[:16]),
-            "pdf_download_url": f"/download-pdf?hash={hash}",
-            "recycling_eligible": True,
-            "circular_economy_status": "Verified Safe for Resale & Circular Recycling",
-            "recommended_recyclers": CERTIFIED_RECYCLERS
+    return JSONResponse(
+        status_code=404,
+        content={
+            "verified": False,
+            "message": "Certificate block hash not found in blockchain ledger. Invalid or tampered certificate."
         }
-
-    # Dynamically verify custom input hash
-    ts_human = datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
-    return {
-        "verified": True,
-        "block_hash": hash,
-        "prev_hash": "0000000000000000000000000000000000000000000000000000000000000000",
-        "report_id": f"SW-CUSTOM-{hash[:8].upper()}",
-        "device": "Sanitized Storage Device (Verified)",
-        "serial": f"SW-{hash[:10].upper()}",
-        "method": "NIST SP 800-88 Purge / ANSSI Palier 1",
-        "confidence_score": 100,
-        "timestamp": time.time(),
-        "timestamp_human": ts_human,
-        "sha256": hash,
-        "cert_pdf_hash": hash,
-        "pdf_download_url": f"/download-pdf?hash={hash}",
-        "recycling_eligible": True,
-        "circular_economy_status": "Verified Safe for Resale & Circular Recycling",
-        "recommended_recyclers": CERTIFIED_RECYCLERS
-    }
+    )
 
 
 @app.get("/download-pdf")
