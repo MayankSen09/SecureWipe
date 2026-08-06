@@ -1,0 +1,110 @@
+[
+  {
+    "timestamp": 1785947677.060766,
+    "meta_hash": "cdacd41fe9910901d2396031d43357ebf45334dbfb2ce691992dd56df2ac88d9",
+    "prev_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "device": "/dev/block/bootdevice/by-name/userdata",
+    "serial": "29211FDF6000AB",
+    "method": "Android Cryptographic Purge",
+    "confidence_score": 100,
+    "block_hash": "d8a255b9510da07df950b198ed3c2562cb18f21d9406531c99f118b42c7e820b",
+    "cert_pdf_hash": "56684207c0c84700027d294e9c7cc2c369e339366c212b7f1bd87d729ecd81ae",
+    "index": 0
+  },
+  {
+    "timestamp": 1785947708.554698,
+    "meta_hash": "91752494812353df4d52ecf0d74865be2da6fa024eb734b266db4db16afaa35b",
+    "prev_hash": "d8a255b9510da07df950b198ed3c2562cb18f21d9406531c99f118b42c7e820b",
+    "device": "[MOCK] \\\\.\\PhysicalDrive0",
+    "serial": "S5YXNX0T654321",
+    "method": "ANSSI Palier 1 (1-pass zeros)",
+    "confidence_score": 100,
+    "block_hash": "345b0d5d3de1799b44f7f3beaeca2e124d31a27afa745f372d8a367c30c5c573",
+    "cert_pdf_hash": "941fedcb5d28348b7d210b20cca4f5eb7e88476bdffae64114a572a27453a0b0",
+    "index": 1
+  },
+  {
+    "timestamp": 1785989652.059059,
+    "meta_hash": "28a861f2802614b55aefab1798f0b359ee58c711d8b7e5b7571d4f9a6b677578",
+    "prev_hash": "345b0d5d3de1799b44f7f3beaeca2e124d31a27afa745f372d8a367c30c5c573",
+    "device": "[MOCK] \\\\.\\PhysicalDrive0",
+    "serial": "S5YXNX0T654321",
+    "method": "ANSSI Palier 1 (1-pass zeros)",
+    "confidence_score": 100,
+    "block_hash": "dd9751c304dde2873209d9c217f3aab3f13759c4c2329460e4318c241483f02c",
+    "cert_pdf_hash": "59eeb4ed1786e6a64c13b7ce725e7c95318192b85ba46714e9f641a3f0dc1c9e",
+    "index": 2
+  },
+  {
+    "timestamp": 1785989660.898888,
+    "meta_hash": "385c258632726f9173d3800d26a04393f6480aa8612f96b060389535a3774042",
+    "prev_hash": "dd9751c304dde2873209d9c217f3aab3f13759c4c2329460e4318c241483f02c",
+    "device": "/dev/block/bootdevice/by-name/userdata",
+    "serial": "29211FDF6000AB",
+    "method": "Android Cryptographic Purge",
+    "confidence_score": 100,
+    "block_hash": "21df2d301828a6d015ea17c13bba33573e215652b1a4762d06d288c4a3a0cd80",
+    "cert_pdf_hash": "7bcb1088ca91dcad7580015171a95b025027f1f9c14603513e003ed086d81f59",
+    "index": 3
+  },
+  {
+    "timestamp": 1786020739.786356,
+    "meta_hash": "04efdd51f2f41b1cb2efbb6d148076fde8959c82a3186500c9a94bdd26de3a56",
+    "prev_hash": "21df2d301828a6d015ea17c13bba33573e215652b1a4762d06d288c4a3a0cd80",
+    "device": "[MOCK] \\\\.\\PhysicalDrive0",
+    "serial": "S5YXNX0T654321",
+    "method": "ANSSI Palier 1 (1-pass zeros)",
+    "confidence_score": 100,
+    "block_hash": "7f5f72a21073a666321f7fe8ae99ece91a90278e3b8cf4da86cdec4a31ef513b",
+    "cert_pdf_hash": "e50f82af7d2dd5c5db66ed1369dee909df73555f87c9e38d6962d2ca370b185c",
+    "index": 4
+  },
+  {
+    "timestamp": 1786023687.103354,
+    "meta_hash": "ce404be11251b4b96b91e46fb97ad7762bfb6f6c7b34c6b110031f9ba826e291",
+    "prev_hash": "7f5f72a21073a666321f7fe8ae99ece91a90278e3b8cf4da86cdec4a31ef513b",
+    "device": "[MOCK] \\\\.\\PhysicalDrive0",
+    "serial": "S5YXNX0T654321",
+    "method": "ANSSI Palier 1 (1-pass zeros)",
+    "confidence_score": 100,
+    "block_hash": "ba487344ca51a6e42bcc5d584507cad28ae447a3d37f5a68f7e6fb219fd6b656",
+    "cert_pdf_hash": "a92c5a76037cd3e022c7f5bd887e0d1bdc684cfc7331aac501bea00a0118ee72",
+    "index": 5
+  },
+  {
+    "timestamp": 1786023736.96387,
+    "meta_hash": "030d5904b33db7fa0dabaa34a77b73a8b1c95aaf8b93b1c5a2aa6aecb288958f",
+    "prev_hash": "ba487344ca51a6e42bcc5d584507cad28ae447a3d37f5a68f7e6fb219fd6b656",
+    "device": "[MOCK] \\\\.\\PhysicalDrive0",
+    "serial": "S5YXNX0T654321",
+    "method": "ANSSI Palier 1 (1-pass zeros)",
+    "confidence_score": 100,
+    "block_hash": "7da07a6e5483d55fb2def9a40cbc0686961f59116c524051da57499178a0272b",
+    "cert_pdf_hash": "d3b53f28fd89e44a1b189b01619512e5b3acdfcc1eb44dcf3b85c894810e8054",
+    "index": 6
+  },
+  {
+    "timestamp": 1786026924.580857,
+    "meta_hash": "3751ba5cbdea2a9c3fb80fc511c05aa3a4fc0f9555ad9db397cb81cc468f3306",
+    "prev_hash": "7da07a6e5483d55fb2def9a40cbc0686961f59116c524051da57499178a0272b",
+    "device": "[MOCK] \\\\.\\PhysicalDrive0",
+    "serial": "S5YXNX0T654321",
+    "method": "ANSSI Palier 1 (1-pass zeros)",
+    "confidence_score": 100,
+    "block_hash": "05a36f67a195a6dd6645146943136d24365c5672557f2b9f93d0011f463e6f28",
+    "cert_pdf_hash": "22664ba4280e156597237dd9c538cddc68efa73a670e9f2b788dc2804bbf98d4",
+    "index": 7
+  },
+  {
+    "timestamp": 1786028322.188339,
+    "meta_hash": "8d70c5ef400d4152580a2124d47d7ae955a3a5fd82fa722dd9b7d04796285571",
+    "prev_hash": "05a36f67a195a6dd6645146943136d24365c5672557f2b9f93d0011f463e6f28",
+    "device": "[MOCK] \\\\.\\PhysicalDrive0",
+    "serial": "S5YXNX0T654321",
+    "method": "ANSSI Palier 1 (1-pass zeros)",
+    "confidence_score": 100,
+    "block_hash": "aec8683df3de05a5495ebb29cde7581e1950f66ae5e9fdfeced03244e14dcb19",
+    "cert_pdf_hash": "ed95198d86fd29892ba1ea0f540cc59dd6a5fef7c6a0533b6f59014496d67c06",
+    "index": 8
+  }
+]
