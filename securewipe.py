@@ -306,8 +306,9 @@ def main():
         # 1. Vérification OS
         _check_os()
 
-        # 2. Vérification privilèges (avant tout affichage lourd)
-        check_privileges()
+        # 2. Vérification privilèges (sauf en mode mock)
+        if not args.mock and os.environ.get("SECUREWIPE_MOCK") != "1":
+            check_privileges()
 
         # 3. Sélection langue
         select_language()

@@ -106,5 +106,101 @@
     "block_hash": "aec8683df3de05a5495ebb29cde7581e1950f66ae5e9fdfeced03244e14dcb19",
     "cert_pdf_hash": "ed95198d86fd29892ba1ea0f540cc59dd6a5fef7c6a0533b6f59014496d67c06",
     "index": 8
+  },
+  {
+    "timestamp": 1786031506.934189,
+    "meta_hash": "abf54657350eea28ef7c2cd15748a1c6744d0295f9e30bde3aa00309029a3163",
+    "prev_hash": "aec8683df3de05a5495ebb29cde7581e1950f66ae5e9fdfeced03244e14dcb19",
+    "device": "[MOCK] \\\\.\\PhysicalDrive0",
+    "serial": "S5YXNX0T654321",
+    "method": "ANSSI Palier 1 (1-pass zeros)",
+    "confidence_score": 100,
+    "block_hash": "6627ae13ba2b7aa27abdd97ae6bdd02b23cf1810f785dbc603e815a88c139140",
+    "cert_pdf_hash": "cd60f4789470720feb20ac04e071b9b9bea966e2fa84fe6b212640a9b2ff7a6c",
+    "index": 9
+  },
+  {
+    "timestamp": 1786031687.834465,
+    "meta_hash": "b2eefa801d51def2c3b7c7e3a85588c20f0edf727cae75f754f0d6372e68d08e",
+    "prev_hash": "6627ae13ba2b7aa27abdd97ae6bdd02b23cf1810f785dbc603e815a88c139140",
+    "device": "/dev/block/bootdevice/by-name/userdata",
+    "serial": "29211FDF6000AB",
+    "method": "Android Cryptographic Purge",
+    "confidence_score": 100,
+    "block_hash": "48245d4fe3056a28428c14cdcb2b356eadd15577e165fa7224d128745aa9a714",
+    "cert_pdf_hash": "b259eef13662409b6009433c50d88a3ee520bd4cf7ac0f1aed7e75575e12ae0c",
+    "index": 10
+  },
+  {
+    "timestamp": 1786032191.69702,
+    "meta_hash": "132915375b8d2d1537eb93cdf286023ab30a8df0e92d9758d3d4f16b6e79dad8",
+    "prev_hash": "48245d4fe3056a28428c14cdcb2b356eadd15577e165fa7224d128745aa9a714",
+    "device": "PhysicalDrive0",
+    "serial": "TEST-SN-123",
+    "method": "Web Execution (NIST_PURGE)",
+    "confidence_score": 100,
+    "block_hash": "fc05bffb1b2066d6fa45df6eb6fb45436cde2555886ef84aadaa746d2ed1106f",
+    "cert_pdf_hash": "0d372594ca4f72db637690315cedabcb114d848c74a01d0530589111afe8ac37",
+    "index": 11
+  },
+  {
+    "timestamp": 1786032192.379837,
+    "meta_hash": "c53ca79cb67ff7ca7dbcea9aceae9382c7a7d1d0a620794454c29f292a56cf70",
+    "prev_hash": "fc05bffb1b2066d6fa45df6eb6fb45436cde2555886ef84aadaa746d2ed1106f",
+    "device": "",
+    "serial": "",
+    "method": "",
+    "confidence_score": 100,
+    "block_hash": "da63b14ab9d65bce8371b32a00967f0b5875c99a6642d50cb460ba6cc861b155",
+    "cert_pdf_hash": "0d372594ca4f72db637690315cedabcb114d848c74a01d0530589111afe8ac37",
+    "index": 12
+  },
+  {
+    "timestamp": 1786032273.47497,
+    "meta_hash": "d49989479e5e31e64293fb9ccc2f3814ce7c86cc72c8908a0357e7e95d3b91cd",
+    "prev_hash": "da63b14ab9d65bce8371b32a00967f0b5875c99a6642d50cb460ba6cc861b155",
+    "device": "PhysicalDrive0",
+    "serial": "S5YXNX0T654321",
+    "method": "Web Execution (NIST_PURGE)",
+    "confidence_score": 100,
+    "block_hash": "c09cf2c4a0d18606387a1acd5c1d33f9ab28b2ea71e5d19644c2ab53bcf05f3d",
+    "cert_pdf_hash": "d3aa5589a1475df58945a140c42e19ed2fb6b30fc9f5328100c864adee73e0d1",
+    "index": 13
+  },
+  {
+    "timestamp": 1786032274.0060875,
+    "meta_hash": "9f8496f5d3a802ffe912e6f9e1cc4fb4879c8bc25f4dfa196b50ab1295b0c5fc",
+    "prev_hash": "c09cf2c4a0d18606387a1acd5c1d33f9ab28b2ea71e5d19644c2ab53bcf05f3d",
+    "device": "",
+    "serial": "",
+    "method": "",
+    "confidence_score": 100,
+    "block_hash": "84cc2cc8f63669d2be5dc426d5e20d7f2d8ded84ef094a0e13b1dc2d0475826a",
+    "cert_pdf_hash": "d3aa5589a1475df58945a140c42e19ed2fb6b30fc9f5328100c864adee73e0d1",
+    "index": 14
+  },
+  {
+    "timestamp": 1786032274.006088,
+    "meta_hash": "2f3d60abd5fab46356a20bef28eb4529203f55920ee530abace4b2b78f3142ed",
+    "prev_hash": "84cc2cc8f63669d2be5dc426d5e20d7f2d8ded84ef094a0e13b1dc2d0475826a",
+    "device": "/dev/nvme0n1",
+    "serial": "SW-SECURE-998877",
+    "method": "",
+    "confidence_score": 100,
+    "block_hash": "5cec15a5a616f0de7bc900e915a5c2491b3a7f30d2ca81e6943847a3c014cd57",
+    "cert_pdf_hash": "0ee6b48e2d8bc60be57d778adf079904204902be1c551371983d8306a8ce4bf8",
+    "index": 15
+  },
+  {
+    "timestamp": 1786032638.864925,
+    "meta_hash": "d19942e9ed41ee86a71047d41032dd1547c5043aa886c7a7e54e609f6ede65ab",
+    "prev_hash": "5cec15a5a616f0de7bc900e915a5c2491b3a7f30d2ca81e6943847a3c014cd57",
+    "device": "[MOCK] \\\\.\\PhysicalDrive0",
+    "serial": "S5YXNX0T654321",
+    "method": "ANSSI Palier 1 (1-pass zeros)",
+    "confidence_score": 100,
+    "block_hash": "aa4bd9d6c06abfda9518156ff6c9249629075a7f89bd2a22fc2f357233cd3c65",
+    "cert_pdf_hash": "7349b6bad93dff553a325f173d1e44556e3c088e99d6d680cf862a825522f22d",
+    "index": 16
   }
 ]
