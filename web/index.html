@@ -701,6 +701,35 @@
       color: var(--text-muted);
       word-break: break-all;
       margin-top: 0.5rem;
+      position: relative;
+    }
+
+    .copy-hash-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 0.6rem;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.35rem 0.85rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .copy-hash-btn:hover {
+      background: var(--accent-blue);
+      color: white;
+      border-color: var(--accent-blue);
+    }
+
+    .copy-hash-btn.copied {
+      background: var(--success-bg);
+      color: #0c5a21;
+      border-color: rgba(52, 199, 89, 0.3);
     }
 
     .action-btn-group {
@@ -1091,7 +1120,7 @@
       <p>Enter the cryptographic block hash or scan the QR code to verify proof of sanitization anchored on the blockchain ledger.</p>
       
       <div class="search-box">
-        <input type="text" id="hashInput" class="search-input" placeholder="e.g. 0xba487344ca51a6e42bcc5d584507cad28ae447a3d37f..." />
+        <input type="text" id="hashInput" class="search-input" placeholder="Paste full 64-character SHA-256 block hash here..." onkeydown="if(event.key==='Enter') performSearch()" />
         <button class="search-btn" onclick="performSearch()">Verify Hash</button>
       </div>
 
@@ -1329,7 +1358,7 @@
 
         if (response.ok && data.verified) {
           const liveBase = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'https://secure-wipe-psi.vercel.app' : window.location.origin;
-          const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(liveBase + '/download-pdf?hash=' + data.block_hash)}`;
+          const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(liveBase + '/verify?hash=' + data.block_hash)}`;
 
           resultArea.innerHTML = `
             <div style="display: flex; gap: 2rem; align-items: flex-start; flex-wrap: wrap;">
@@ -1377,8 +1406,12 @@
               </div>
             </div>
 
-            <div class="detail-label" style="margin-top:1.5rem;">Cryptographic Block Hash</div>
-            <div class="hash-box">${data.block_hash}</div>
+            <div class="detail-label" style="margin-top:1.5rem;">Cryptographic Block Hash (SHA-256, 64 chars)</div>
+            <div class="hash-box" id="displayedHash">${data.block_hash}</div>
+            <button class="copy-hash-btn" id="copyHashBtn" onclick="copyHash('${data.block_hash}')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              Copy Full Hash
+            </button>
 
             <!-- Download PDF & QR Buttons -->
             <div class="action-btn-group">
@@ -1417,10 +1450,57 @@
 
     function performSearch() {
       const hash = document.getElementById('hashInput').value.trim();
-      if (hash) {
-        window.history.pushState({}, '', `?hash=${encodeURIComponent(hash)}`);
-        verifyHash(hash);
+      if (!hash) {
+        document.getElementById('resultArea').innerHTML = `
+          <div class="status-badge status-failed">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            No Hash Entered
+          </div>
+          <p style="font-size:0.95rem; color:var(--text-muted);">Please paste the full 64-character SHA-256 block hash from your certificate.</p>
+        `;
+        return;
       }
+      if (hash.length !== 64) {
+        document.getElementById('resultArea').innerHTML = `
+          <div class="status-badge status-failed">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            Invalid Hash Length
+          </div>
+          <p style="font-size:0.95rem; color:var(--text-muted);">Hash is <strong>${hash.length} characters</strong> — a valid SHA-256 block hash must be exactly <strong>64 characters</strong>. Please copy the full hash from your PDF certificate.</p>
+        `;
+        return;
+      }
+      window.history.pushState({}, '', `?hash=${encodeURIComponent(hash)}`);
+      verifyHash(hash);
+    }
+
+    function copyHash(hash) {
+      navigator.clipboard.writeText(hash).then(() => {
+        const btn = document.getElementById('copyHashBtn');
+        if (btn) {
+          btn.classList.add('copied');
+          btn.innerHTML = `
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Copied!
+          `;
+          setTimeout(() => {
+            btn.classList.remove('copied');
+            btn.innerHTML = `
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              Copy Full Hash
+            `;
+          }, 2000);
+        }
+      }).catch(() => {
+        /* fallback: select the hash text */
+        const el = document.getElementById('displayedHash');
+        if (el) {
+          const range = document.createRange();
+          range.selectNodeContents(el);
+          window.getSelection().removeAllRanges();
+          window.getSelection().addRange(range);
+        }
+      });
     }
 
     // --- SaaS Scroll Animations ---

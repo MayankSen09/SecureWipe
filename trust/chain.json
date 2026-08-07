@@ -202,5 +202,77 @@
     "block_hash": "aa4bd9d6c06abfda9518156ff6c9249629075a7f89bd2a22fc2f357233cd3c65",
     "cert_pdf_hash": "7349b6bad93dff553a325f173d1e44556e3c088e99d6d680cf862a825522f22d",
     "index": 16
+  },
+  {
+    "timestamp": 1786035877.066236,
+    "meta_hash": "23e9758de482eceb4565bf0d48439a92ca073992813757cae9c5fe3c0af7c4d3",
+    "prev_hash": "aa4bd9d6c06abfda9518156ff6c9249629075a7f89bd2a22fc2f357233cd3c65",
+    "device": "/dev/nvme0n1",
+    "serial": "SW-PROD-2026-X99",
+    "method": "NIST SP 800-88 Purge (NVMe Format / ATA Secure Erase)",
+    "confidence_score": 100,
+    "block_hash": "ee3a5e61d0ec408105605961e3b132809c877d701c5b41825ba602732b7c0808",
+    "cert_pdf_hash": "206bad4202a2f0dd5a1aa4d5120f087f5408d8453e88048fb6cd7745376dbc45",
+    "index": 17
+  },
+  {
+    "timestamp": 1786035877.649198,
+    "meta_hash": "7217c1b0f3741022da9a89716a00c65a22492672c32054157316cad9cb509413",
+    "prev_hash": "ee3a5e61d0ec408105605961e3b132809c877d701c5b41825ba602732b7c0808",
+    "device": "",
+    "serial": "",
+    "method": "",
+    "confidence_score": 100,
+    "block_hash": "bf23d27cbc75a613e1544216bd3e4f146e04a5fb6f3650eb20fb3cd740ee1724",
+    "cert_pdf_hash": "206bad4202a2f0dd5a1aa4d5120f087f5408d8453e88048fb6cd7745376dbc45",
+    "index": 18
+  },
+  {
+    "timestamp": 1786084090.863733,
+    "meta_hash": "c60d07d1e0f558c592892a3def06f7520f6ae944f5bd362c90d2c6398215fb25",
+    "prev_hash": "bf23d27cbc75a613e1544216bd3e4f146e04a5fb6f3650eb20fb3cd740ee1724",
+    "device": "[MOCK] \\\\.\\PhysicalDrive0",
+    "serial": "S5YXNX0T654321",
+    "method": "ANSSI Palier 1 (1-pass zeros)",
+    "confidence_score": 100,
+    "block_hash": "4593614fb3840ab6fba09d37c15267a147ba6ed0d85f839262d64eccdbdfc0c1",
+    "cert_pdf_hash": "b0b149d4e35281bfae1a26edfcf51fedd30820e3dc5aff4fdbf6b2b23d436fbb",
+    "index": 19
+  },
+  {
+    "timestamp": 1786084091.882004,
+    "meta_hash": "b8ea342ee3cecf57ee71a6db350cbfb6632334e94d9bf433e69418ebf612bdac",
+    "prev_hash": "4593614fb3840ab6fba09d37c15267a147ba6ed0d85f839262d64eccdbdfc0c1",
+    "device": "[MOCK] \\\\.\\PhysicalDrive0",
+    "serial": "S5YXNX0T654321",
+    "method": "ANSSI Palier 1 (1-pass zeros)",
+    "confidence_score": 100,
+    "block_hash": "f69483441abf5dee1c758ea6974f497cc04c1bd24566cfa9b5f1ce911bd246b3",
+    "cert_pdf_hash": "4071e5548cf25fa128f133e859855621b7a191c58f09d84fcf22f2e831146bcb",
+    "index": 20
+  },
+  {
+    "timestamp": 1786084169.363953,
+    "meta_hash": "596921ff2e115302b351fc70e63ef7f171b208758ce327357e16a358f8bd36fa",
+    "prev_hash": "f69483441abf5dee1c758ea6974f497cc04c1bd24566cfa9b5f1ce911bd246b3",
+    "device": "[MOCK] \\\\.\\PhysicalDrive0",
+    "serial": "S5YXNX0T654321",
+    "method": "ANSSI Palier 1 (1-pass zeros)",
+    "confidence_score": 100,
+    "block_hash": "1573a3778febefe318df8c115d74e3ddfb98a386bba0bd4db00e528e259c2667",
+    "cert_pdf_hash": "df70b64eca5283c4135c2974eefeea0b835ca5cce27fc3fe669685b2ac611e5f",
+    "index": 21
+  },
+  {
+    "timestamp": 1786084170.760508,
+    "meta_hash": "8125197ad5fccf2b8e0c366e98651752b623900eb764697d0e7fe1bcd53428e9",
+    "prev_hash": "1573a3778febefe318df8c115d74e3ddfb98a386bba0bd4db00e528e259c2667",
+    "device": "[MOCK] \\\\.\\PhysicalDrive0",
+    "serial": "S5YXNX0T654321",
+    "method": "ANSSI Palier 1 (1-pass zeros)",
+    "confidence_score": 100,
+    "block_hash": "e96610dbe3a0023f3f5147984cab161b7aef2d837006f92116d86280aae36753",
+    "cert_pdf_hash": "988cc90bfa8688f453c2cdfb5b3d0dbb8bb6f8c7b4ac4f5cd2673e5b079456c3",
+    "index": 22
   }
 ]
