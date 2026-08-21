@@ -1157,7 +1157,7 @@
       ? 'http://localhost:8000'
       : '';
 
-    // --- Normalize hash: strip whitespace and optional 0x prefix ---
+    // --- Normalize hash input: strip leading whitespace and optional 0x prefix ---
     function normalizeHash(raw) {
       let h = raw.trim();
       if (h.toLowerCase().startsWith('0x')) h = h.substring(2);
