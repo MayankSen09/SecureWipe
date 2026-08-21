@@ -961,7 +961,7 @@
             <div id="t-line-7" class="t-line"><span class="t-success">[OK]</span> Device sanitized (100% Confidence Score).</div>
             <div id="t-line-8" class="t-line"><span class="t-dim">[INFO]</span> Generating PDF Certificate & QR Code...</div>
             <div id="t-line-9" class="t-line"><span class="t-success">[ANCHOR]</span> Certificate anchored to SecureWipeLedger.</div>
-            <div id="t-line-10" class="t-line">TxHash: <span class="t-highlight">0xba487344ca51a6e42bcc5d584507...</span></div>
+            <div id="t-line-10" class="t-line">TxHash: <span class="t-highlight">ba487344ca51a6e42bcc5d584507cad28ae447a3d37f...</span></div>
             <div id="t-line-11" class="t-line" style="margin-top: 1rem"><span class="t-prompt">~/securewipe$</span><span class="t-cursor"></span></div>
           </div>
         </div>
@@ -1117,10 +1117,10 @@
   <section id="verify" class="verify-section">
     <div class="card animate-on-scroll">
       <h2>Certificate Verification Portal</h2>
-      <p>Enter the cryptographic block hash or scan the QR code to verify proof of sanitization anchored on the blockchain ledger.</p>
+      <p>Enter the cryptographic block hash or scan the QR code to verify proof of sanitization anchored on the blockchain ledger.<br><small style="color:var(--text-muted);">Accepts hashes with or without <code>0x</code> prefix.</small></p>
       
       <div class="search-box">
-        <input type="text" id="hashInput" class="search-input" placeholder="Paste full 64-character SHA-256 block hash here..." onkeydown="if(event.key==='Enter') performSearch()" />
+        <input type="text" id="hashInput" class="search-input" placeholder="e.g. ba487344ca51a6e42bcc5d584507cad28ae447a3d37f5a68f7e6fb219fd6b656" onkeydown="if(event.key==='Enter') performSearch()" />
         <button class="search-btn" onclick="performSearch()">Verify Hash</button>
       </div>
 
@@ -1150,6 +1150,31 @@
   </footer>
 
   <script>
+    // --- API Base URL Configuration ---
+    // When served by FastAPI at localhost:8000, use '' (same origin).
+    // When opened as file:// or from a different port, set the backend URL.
+    const API_BASE = (window.location.protocol === 'file:' || (window.location.port && window.location.port !== '8000'))
+      ? 'http://localhost:8000'
+      : '';
+
+    // --- Normalize hash: strip whitespace and optional 0x prefix ---
+    function normalizeHash(raw) {
+      let h = raw.trim();
+      if (h.toLowerCase().startsWith('0x')) h = h.substring(2);
+      return h;
+    }
+
+    // --- HTML Escaping helper to prevent XSS ---
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
     // --- Live Web Wiping Studio Functionality ---
     async function executeWebWipe() {
       const driveVal = document.getElementById('wipeDriveSelect').value.split('|');
@@ -1200,7 +1225,7 @@
       progressBar.style.width = '95%';
 
       try {
-        const resp = await fetch('/api/start-wipe', {
+        const resp = await fetch(API_BASE + '/api/start-wipe', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ device, model, serial, method, operator })
@@ -1266,7 +1291,7 @@
       };
 
       try {
-        const response = await fetch('/generate-certificate', {
+        const response = await fetch(API_BASE + '/generate-certificate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -1274,7 +1299,7 @@
         const data = await response.json();
 
         if (response.ok && data.status === 'success') {
-          const liveBase = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'https://secure-wipe-psi.vercel.app' : window.location.origin;
+          const liveBase = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:8000' : window.location.origin;
           const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(liveBase + data.verify_url)}`;
 
           resultBox.innerHTML = `
@@ -1283,7 +1308,7 @@
             <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">SHA-256 Block Hash: <code>${data.block_hash.substring(0, 18)}...</code></p>
             
             <div style="display:flex; gap:0.5rem; width:100%;">
-              <a href="${data.download_url}" target="_blank" class="btn-primary" style="flex:1; text-decoration:none; font-size:0.85rem; padding:0.75rem; display:inline-flex; align-items:center; justify-content:center; gap:0.4rem;">
+              <a href="${API_BASE + data.download_url}" target="_blank" class="btn-primary" style="flex:1; text-decoration:none; font-size:0.85rem; padding:0.75rem; display:inline-flex; align-items:center; justify-content:center; gap:0.4rem;">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> Download PDF
               </a>
               <button onclick="openQrModal('${qrUrl}')" class="btn-secondary" style="font-size:0.85rem; padding:0.75rem; display:inline-flex; align-items:center; justify-content:center; gap:0.4rem;">
@@ -1353,11 +1378,11 @@
       resultArea.innerHTML = '<div class="loading">Querying Ledger & Circular Economy Records...</div>';
 
       try {
-        const response = await fetch(`/verify?hash=${encodeURIComponent(hash)}`);
+        const response = await fetch(`${API_BASE}/verify?hash=${encodeURIComponent(hash)}`);
         const data = await response.json();
 
         if (response.ok && data.verified) {
-          const liveBase = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'https://secure-wipe-psi.vercel.app' : window.location.origin;
+          const liveBase = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:8000' : window.location.origin;
           const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(liveBase + '/verify?hash=' + data.block_hash)}`;
 
           resultArea.innerHTML = `
@@ -1378,19 +1403,19 @@
                 <div class="detail-grid">
                   <div class="detail-item">
                     <div class="detail-label">Report ID</div>
-                    <div class="detail-value">${data.report_id}</div>
+                    <div class="detail-value">${escapeHtml(data.report_id)}</div>
                   </div>
                   <div class="detail-item">
                     <div class="detail-label">Wipe Timestamp</div>
-                    <div class="detail-value">${data.timestamp_human}</div>
+                    <div class="detail-value">${escapeHtml(data.timestamp_human)}</div>
                   </div>
                   <div class="detail-item">
                     <div class="detail-label">Device Serial</div>
-                    <div class="detail-value">${data.serial}</div>
+                    <div class="detail-value">${escapeHtml(data.serial)}</div>
                   </div>
                   <div class="detail-item">
                     <div class="detail-label">Sanitization Method</div>
-                    <div class="detail-value">${data.method}</div>
+                    <div class="detail-value">${escapeHtml(data.method)}</div>
                   </div>
                 </div>
 
@@ -1415,7 +1440,7 @@
 
             <!-- Download PDF & QR Buttons -->
             <div class="action-btn-group">
-              <button class="btn-download-pdf" onclick="window.open('/download-pdf?hash=${data.block_hash}', '_blank')">
+              <button class="btn-download-pdf" onclick="window.open(API_BASE + '/download-pdf?hash=${data.block_hash}', '_blank')">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                 Download PDF Certificate
               </button>
@@ -1449,8 +1474,8 @@
     }
 
     function performSearch() {
-      const hash = document.getElementById('hashInput').value.trim();
-      if (!hash) {
+      const rawHash = document.getElementById('hashInput').value.trim();
+      if (!rawHash) {
         document.getElementById('resultArea').innerHTML = `
           <div class="status-badge status-failed">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -1460,16 +1485,20 @@
         `;
         return;
       }
+      // Normalize: strip 0x prefix if present
+      const hash = normalizeHash(rawHash);
       if (hash.length !== 64) {
         document.getElementById('resultArea').innerHTML = `
           <div class="status-badge status-failed">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             Invalid Hash Length
           </div>
-          <p style="font-size:0.95rem; color:var(--text-muted);">Hash is <strong>${hash.length} characters</strong> — a valid SHA-256 block hash must be exactly <strong>64 characters</strong>. Please copy the full hash from your PDF certificate.</p>
+          <p style="font-size:0.95rem; color:var(--text-muted);">Hash is <strong>${hash.length} characters</strong> after removing any 0x prefix — a valid SHA-256 block hash must be exactly <strong>64 characters</strong>. Please copy the full hash from your PDF certificate.</p>
         `;
         return;
       }
+      // Update input to show the normalized hash
+      document.getElementById('hashInput').value = hash;
       window.history.pushState({}, '', `?hash=${encodeURIComponent(hash)}`);
       verifyHash(hash);
     }
@@ -1575,8 +1604,9 @@
     // Handle URL parameters on load
     window.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
-      const hash = urlParams.get('hash');
-      if (hash) {
+      const rawHash = urlParams.get('hash');
+      if (rawHash) {
+        const hash = normalizeHash(rawHash);
         document.getElementById('hashInput').value = hash;
         document.getElementById('verify').scrollIntoView();
         verifyHash(hash);
