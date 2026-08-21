@@ -106,19 +106,34 @@ def run_demo():
     rprint("[bold yellow]STEP 6:[/bold yellow] Querying Local Verification API Ledger...")
     import json
     chain_file = SCRIPT_DIR / "trust" / "chain.json"
+    latest_hash = None
     if chain_file.exists():
         with open(chain_file, "r", encoding="utf-8") as f:
             chain = json.load(f)
             if chain:
                 latest = chain[-1]
-                rprint(f"  [cyan]▸[/cyan] Latest Block Hash: [bold cyan]{latest['block_hash']}[/bold cyan]")
+                latest_hash = latest['block_hash']
                 rprint(f"  [cyan]▸[/cyan] Anchored Asset S/N: [bold yellow]{latest.get('serial')}[/bold yellow]")
                 rprint(f"  [cyan]▸[/cyan] Anchored Score    : [bold green]{latest.get('confidence_score')}%[/bold green]")
     console.print()
 
+    # Show the hash prominently so it can be copy-pasted into the web portal
+    if latest_hash:
+        verify_url = f"http://localhost:8000/verify?hash={latest_hash}"
+        console.print(Panel(
+            f"[bold cyan]📋 BLOCKCHAIN BLOCK HASH (copy this to verify)[/bold cyan]\n\n"
+            f"[bold white]{latest_hash}[/bold white]\n\n"
+            f"[dim]Verify at: [underline]{verify_url}[/underline][/dim]\n"
+            f"[dim]Or open http://localhost:8000 → paste hash → click Verify Hash[/dim]",
+            border_style="cyan",
+            padding=(1, 2),
+            title="[bold]Hash Ready for Verification[/bold]",
+        ))
+        console.print()
+
     console.print(Panel(
         "[bold green]✨ SecureWipe Demonstration Complete![/bold green]\n"
-        "[dim]Start API portal using: uvicorn api.app:app --port 8000[/dim]",
+        "[dim]Web portal: uvicorn api.app:app --host 0.0.0.0 --port 8000 --reload[/dim]",
         border_style="green",
         padding=(1, 4),
     ))
