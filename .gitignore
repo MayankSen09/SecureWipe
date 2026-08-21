@@ -19,6 +19,7 @@ env/
 logs/*.pdf
 logs/*.log
 logs/*.txt
+generated_certs/
 *.pdf
 *.log
 
