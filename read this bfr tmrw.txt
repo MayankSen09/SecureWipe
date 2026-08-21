@@ -1,0 +1,181 @@
+================================================================================
+SECUREWIPE v2.0.0 — BACKEND ARCHITECTURE & CLI OPERATION GUIDE
+================================================================================
+File created for preparation / presentation tomorrow.
+Target: Comprehensive explanation of all backend files, execution pipeline, 
+and underlying algorithms powering the SecureWipe CLI tool.
+
+--------------------------------------------------------------------------------
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+1. Executive Overview
+2. Core Backend File Architecture & Module Breakdown
+3. Step-by-Step Execution Pipeline (What happens under the hood)
+4. Deep-Dive into Key Backend Algorithms & Mechanisms
+5. Critical Technical Selling Points for Presentation / Demo
+
+================================================================================
+1. EXECUTIVE OVERVIEW
+================================================================================
+SecureWipe is an open-source, enterprise-grade storage device sanitization tool.
+It complies with international data erasure standards:
+  • ANSSI (French Network and Information Security Agency) — Tier 1 & Tier 2
+  • NIST SP 800-88 Rev. 2 — Clear & Purge standards
+
+The system features a decoupled backend core. Whether launched in CLI mode 
+(Rich terminal interface) or GUI mode (CustomTkinter interface), the EXACT SAME 
+backend engine performs disk scanning, encryption analysis, raw sanitization, 
+post-wipe verification, confidence scoring, and cryptographic certificate generation.
+
+
+================================================================================
+2. CORE BACKEND FILE ARCHITECTURE & MODULE BREAKDOWN
+================================================================================
+
+[Entry Point]
+📄 securewipe.py
+   • CLI Launcher and Controller.
+   • Handles command-line arguments (--cli, --gui, --mock, --test-disk).
+   • Coordinates OS checks, privilege verification, operator prompts, disk loop,
+     and delegates execution to the core backend modules.
+
+[Hardware & Storage Layer]
+📄 core/disk_windows.py (Windows OS)
+📄 core/disk_linux.py   (Linux OS)
+   • Physical Disk Enumeration: Detects all connected storage devices (HDD, SSD, NVMe, USB).
+   • Hardware Metadata Gathering: Retrieves Serial Numbers, Models, Size, Bus Type (SATA, NVMe, USB), Firmware Version, and SMART health metrics.
+   • System Drive Protection: Flags system partitions (C:\ or /) to prevent accidental wiping of the active OS.
+   • Volume Locking & Dismounting: Uses Windows Win32 APIs (CreateFile, DeviceIoControl FSCTL_LOCK_VOLUME, FSCTL_DISMOUNT_VOLUME) to lock and unmount target drive letters cleanly before writing.
+
+[Encryption Analysis Engine]
+📄 core/crypto_detect.py
+   • Inspects target drives for active disk encryption:
+       - Windows: BitLocker status (manage-bde detection).
+       - Linux: LUKS1 / LUKS2 header detection (cryptsetup).
+       - Hardware SED: Self-Encrypting Drives (TCG Opal / ATA Security Feature Set).
+   • Determines if "Crypto Erase" (cryptographic key destruction) is possible, which can wipe a drive in seconds by destroying the master decryption key.
+
+[Sanitization & Verification Core]
+📄 core/wipe_engine.py
+   • THE HEART OF THE APPLICATION.
+   • Implements all wipe modes:
+       - ANSSI P1: 1 pass of zeros (\x00).
+       - ANSSI P2 / NIST Clear: 1 pass of cryptographically random bytes.
+       - NIST Purge: Firmware-level ATA Secure Erase (hdparm) or NVMe Format (nvme format --ses=1).
+       - Crypto Erase: LUKS header destruction (cryptsetup erase) or BitLocker key deletion.
+       - Custom: N passes alternating between zeros and random patterns.
+   • Direct Sector I/O: Performs unbuffered direct raw disk writes (O_DIRECT on Linux, FILE_FLAG_NO_BUFFERING | FILE_FLAG_WRITE_THROUGH via Win32 API on Windows).
+   • Post-Wipe Verification: Reads statistical random samples of sectors across the disk to verify that data matches expected patterns (zeros or random entropy).
+
+[Confidence Scoring Engine]
+📄 core/confidence.py
+   • Calculates a 0–100 Confidence Score for the wipe operation:
+       - Firmware / Crypto Wipe Success: +50 points
+       - Statistical Verification Pass:  +30 points
+       - HPA/DCO (Hidden Area) Cleared:   +20 points
+
+[Report & Certificate Generation]
+📄 cert/generator.py
+   • Generates official audit-compliant PDF and TXT Wipe Certificates using ReportLab.
+   • Embedded Data: Operator details, Device Serial Number, Model, Exact Bytes Wiped, Duration, Algorithm Used, Verification Status, and Confidence Score.
+   • Features: Watermarking, SHA-256 PDF checksums, and local QR code generation.
+
+[Blockchain Trust & Integrity Layer]
+📄 trust/blockchain.py
+   • Local Immutable Audit Ledger (`trust/chain.json`).
+   • Cryptographically anchors generated certificates using a local SHA-256 block chain.
+   • Each wipe certificate block contains the hash of the previous block, creating a tamper-evident audit trail that can be verified (`verify_chain()`).
+
+[Interface & Localization Helpers]
+📄 core/ui.py
+   • Provides terminal UI components powered by the `rich` library (progress bars, disk tables, interactive menus, banners).
+📄 core/i18n.py
+   • Internationalization engine providing multi-language support (English, French, Spanish, etc.).
+
+
+================================================================================
+3. STEP-BY-STEP EXECUTION PIPELINE (WHAT HAPPENS UNDER THE HOOD)
+================================================================================
+
+When you run `python securewipe.py` in the terminal:
+
+STEP 1: INITIALIZATION & ENVIRONMENT SETUP
+   1. `main()` parses CLI flags (`--cli`, `--mock`, `--test-disk`).
+   2. Performs OS compatibility check (`_check_os()`).
+   3. Verifies Administrator / Root privileges (`check_privileges()`). If not elevated, execution halts with a clear warning.
+   4. Language selection prompt is presented to the operator.
+
+STEP 2: DISK DISCOVERY & HARDWARE AUDIT
+   1. `_get_disk_module()` dynamically imports `disk_windows.py` or `disk_linux.py`.
+   2. `dm.list_disks()` queries OS subsystem (WMIC/PowerShell on Windows, lsblk/udev on Linux).
+   3. Filters out system drives or marks them clearly.
+   4. Formats and displays a rich interactive disk table showing Device, Model, Serial, Size, Bus Type, and System status.
+
+STEP 3: DISK SELECTION & CRYPTOGRAPHIC PROFILING
+   1. Operator chooses a target disk from the table.
+   2. `analyse_disk_crypto(disk)` scans for BitLocker, LUKS, or SED hardware locks.
+   3. If SED ATA Security is "Frozen", a warning is displayed notifying the operator that a power cycle is needed before firmware wipe.
+
+STEP 4: WIPE MODE & STRATEGY SELECTION
+   1. `select_wipe_mode()` constructs available options based on disk hardware (SSD vs HDD, USB vs Internal, Crypto presence).
+   2. Modes offered:
+       • ANSSI P1 (1 pass zeros)
+       • ANSSI P2 (1 pass random)
+       • NIST SP 800-88 Purge (Firmware Erase)
+       • Crypto Erase (Key destruction)
+       • Custom (Multi-pass)
+   3. Operator configures verification percentage (e.g., 10% sampling).
+   4. Final high-visibility confirmation warning is presented asking operator to type drive serial or confirmation word.
+
+STEP 5: SANITIZATION EXECUTION (`run_wipe()`)
+   1. Unmounts target volumes exclusively (`_dismount_volumes_windows`).
+   2. Opens physical raw drive handle (`\\\\.\\PhysicalDriveX` or `/dev/sdX`).
+   3. Executes selected method:
+       • Overwrite mode: Iterates pass-by-pass writing 4 MiB aligned blocks with live progress bar.
+       • Firmware mode: Issues ATA Secure Erase command or NVMe Format command.
+       • Crypto Erase mode: Issues `cryptsetup erase` or destroys master keys.
+   4. Flushes disk buffers (`os.fsync` / Win32 write-through).
+
+STEP 6: POST-WIPE VERIFICATION & CONFIDENCE COMPUTATION
+   1. `_verify_wipe()` reads random sector blocks according to the configured sampling percentage.
+   2. Validates that sectors contain all zeros (for zero pass) or high-entropy data (for random pass).
+   3. `compute_score()` calculates the final numeric confidence score (0–100).
+
+STEP 7: CERTIFICATE & BLOCKCHAIN ANCHORING
+   1. Prompt operator for PDF export directory.
+   2. `generate_certificate()` builds PDF certificate + TXT log file.
+   3. `trust.blockchain.anchor()` hashes PDF file and records block into `trust/chain.json`.
+   4. Displays success summary with path to PDF certificate and audit log.
+
+
+================================================================================
+4. DEEP-DIVE INTO KEY BACKEND ALGORITHMS & MECHANISMS
+================================================================================
+
+A. Direct Sector Writing (Bypassing OS Caching)
+   • On Windows: Uses Python `ctypes` to invoke Win32 API `CreateFileW` with flags `FILE_FLAG_NO_BUFFERING | FILE_FLAG_WRITE_THROUGH`. This guarantees data goes straight to physical magnetic/flash cells without staying in Windows RAM cache.
+   • On Linux: Uses `os.O_DIRECT` raw file descriptors.
+
+B. Target Volume Isolation (Safety Guard)
+   • Before wiping a disk on Windows, SecureWipe queries only drive letters attached to that specific physical drive ID.
+   • Calls `FSCTL_LOCK_VOLUME` and `FSCTL_DISMOUNT_VOLUME`. If files are open on that volume, lock fails and warns user, preventing collateral damage to other drives.
+
+C. NIST Purge vs. Clear
+   • NIST Clear: Overwrites storage addressable locations (ANSSI P1 / P2).
+   • NIST Purge: Triggers controller-level commands (ATA Secure Erase / NVMe Format) that purge bad blocks, wear-leveling pools, and host protected areas (HPA/DCO) inaccessible via standard LRA address writing.
+
+D. Immutable Blockchain Audit Ledger
+   • SHA-256 blocks stored in `trust/chain.json`.
+   • Each record links `prev_hash` to the prior record's `block_hash`.
+   • Prevents operators from modifying certificates post-wipe to forge compliance reports.
+
+
+================================================================================
+5. CRITICAL TECHNICAL SELLING POINTS FOR PRESENTATION / DEMO
+================================================================================
+
+1. Dual-Interface Architecture: One robust, tested backend core serving both CLI (power users/sysadmins) and GUI (desktop users).
+2. Compliant & Auditable: Full alignment with NIST SP 800-88 Rev 2 and ANSSI standards, complete with cryptographic PDF certificates and local blockchain anchoring.
+3. Hardware-Aware Sanitization: Intelligent detection of NVMe, SATA SSD, HDD, BitLocker, LUKS, and SED to recommend the fastest, safest wipe technique.
+4. OS-Level Safety Measures: System disk protection, exclusive volume locking, direct hardware write bypasses.
+5. High Performance: Uses 4 MiB buffer alignment and direct memory I/O yielding maximum drive write speeds.

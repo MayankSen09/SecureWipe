@@ -1,7 +1,8 @@
 """
 SecureWipe — demo.py
-Script de démonstration bout-en-bout.
-Exécute l'ensemble du pipeline en mode mock avec affichage Rich.
+End-to-end demonstration script.
+Runs the full pipeline in mock mode with Rich display.
+Author: TEAM SOLUTION
 """
 
 import os
@@ -9,7 +10,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-# Config encodage Windows & PYTHONPATH
+# Windows encoding config & PYTHONPATH
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
 
@@ -86,7 +87,7 @@ def run_demo():
         operator=op_info,
         disk=target_disk,
         result=wipe_res,
-        mode_label="ANSSI Palier 1 (1-pass zeros)",
+        mode_label="ANSSI Tier 1 (1-pass zeros)",
         verify_pct=10,
         output_dir=SCRIPT_DIR,
         script_dir=SCRIPT_DIR,
@@ -117,7 +118,6 @@ def run_demo():
                 rprint(f"  [cyan]▸[/cyan] Anchored Score    : [bold green]{latest.get('confidence_score')}%[/bold green]")
     console.print()
 
-    # Show the hash prominently so it can be copy-pasted into the web portal
     if latest_hash:
         verify_url = f"http://localhost:8000/verify?hash={latest_hash}"
         console.print(Panel(

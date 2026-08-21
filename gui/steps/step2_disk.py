@@ -1,4 +1,7 @@
-"""SecureWipe GUI — Step 2 : Sélection du disque"""
+"""
+SecureWipe GUI — Step 2: Disk Selection
+Author: TEAM SOLUTION
+"""
 import sys
 import customtkinter as ctk
 from gui.theme import *
@@ -15,26 +18,26 @@ class Step2Disk(ctk.CTkFrame):
         ctk.CTkLabel(self, text=t("disk_title"),
             font=FONT_TITLE, text_color=TEXT_PRIMARY).pack(pady=(28,4))
 
-        # Toolbar : bouton refresh
+        # Toolbar: refresh button
         toolbar = ctk.CTkFrame(self, fg_color="transparent")
         toolbar.pack(fill="x", padx=24, pady=(0,8))
         self._status_lbl = ctk.CTkLabel(toolbar, text=t("disk_scanning"),
             font=FONT_SMALL, text_color=TEXT_SECOND)
         self._status_lbl.pack(side="left")
-        ctk.CTkButton(toolbar, text="↻  Actualiser",
+        ctk.CTkButton(toolbar, text="↻  Refresh",
             font=FONT_SMALL, height=28, corner_radius=RADIUS_SM,
             fg_color=BG_CARD, hover_color=BG_HOVER,
             text_color=TEXT_SECOND, border_width=1, border_color=BORDER,
             command=self.refresh).pack(side="right")
 
-        # Zone défilante pour la liste de disques
+        # Scrollable area for disk list
         self._scroll = ctk.CTkScrollableFrame(self, fg_color=BG_CARD,
             corner_radius=RADIUS, border_width=1, border_color=BORDER,
             scrollbar_button_color=BLUE_DARK,
             scrollbar_button_hover_color=BLUE_PRIMARY)
         self._scroll.pack(fill="both", expand=True, padx=24, pady=(0,8))
 
-        # En-tête colonnes
+        # Column headers
         hdr = ctk.CTkFrame(self._scroll, fg_color=BLUE_DARK, corner_radius=RADIUS_SM)
         hdr.pack(fill="x", padx=4, pady=(4,2))
         for txt, w in [("#", 40), (t("disk_col_dev"), 130), (t("disk_col_model"), 220),
@@ -46,7 +49,7 @@ class Step2Disk(ctk.CTkFrame):
         self._rows_frame = ctk.CTkFrame(self._scroll, fg_color="transparent")
         self._rows_frame.pack(fill="both", expand=True)
 
-        # Avertissement disque système
+        # System disk warning
         self._warn_lbl = ctk.CTkLabel(self, text="", font=FONT_SMALL,
             text_color=YELLOW_WARN, wraplength=700)
         self._warn_lbl.pack(pady=4)
@@ -62,7 +65,7 @@ class Step2Disk(ctk.CTkFrame):
         self._render_rows()
         n = len(self._disks)
         self._status_lbl.configure(
-            text=f"{n} disque(s) détecté(s)" if n else t("disk_none_found"))
+            text=f"{n} disk(s) detected" if n else t("disk_none_found"))
 
     def _load_disks(self):
         try:
@@ -109,11 +112,11 @@ class Step2Disk(ctk.CTkFrame):
     def _select(self, disk, row):
         if disk.is_system:
             self._warn_lbl.configure(
-                text=f"⚠  {disk.device} est le disque système — impossible de l'effacer depuis l'OS actif.")
+                text=f"⚠  {disk.device} is the system disk — cannot wipe active operating system drive.")
             return
         self._warn_lbl.configure(text="")
         self._selected = disk
-        # Highlight
+        # Highlight selected row
         for w in self._rows_frame.winfo_children():
             w.configure(fg_color=BG_CARD)
         for i, d in enumerate(self._disks):
@@ -127,6 +130,6 @@ class Step2Disk(ctk.CTkFrame):
 
     def validate(self):
         if not self._selected:
-            self._warn_lbl.configure(text="Sélectionnez un disque avant de continuer.")
+            self._warn_lbl.configure(text="Please select a disk before proceeding.")
             return False
         return True

@@ -1,6 +1,7 @@
 """
 SecureWipe — i18n module
-Gestion des traductions FR/EN avec détection automatique de la locale.
+FR/EN translation management with automatic locale detection.
+Author: TEAM SOLUTION
 """
 
 import json
@@ -15,7 +16,7 @@ from rich import print as rprint
 
 console = Console()
 
-# Chemin vers le dossier i18n (relatif à ce fichier)
+# Path to the i18n directory (relative to this file)
 I18N_DIR = Path(__file__).parent.parent / "i18n"
 
 SUPPORTED_LANGS = {
@@ -24,7 +25,7 @@ SUPPORTED_LANGS = {
 }
 
 def _load(lang: str) -> dict:
-    """Charge le fichier de traduction pour la langue donnée."""
+    """Loads the translation file for the given language."""
     path = I18N_DIR / f"{lang}.json"
     if not path.exists():
         console.print(f"[red]Translation file not found: {path}[/red]")
@@ -38,8 +39,8 @@ _current_lang: str = "en"
 
 def t(key: str, **kwargs) -> str:
     """
-    Retourne la chaîne traduite pour la clé donnée.
-    Supporte les placeholders {variable} via kwargs.
+    Returns the translated string for the given key.
+    Supports {variable} placeholders via kwargs.
     """
     val = _translations.get(key, f"[MISSING:{key}]")
     if kwargs:
@@ -51,19 +52,19 @@ def t(key: str, **kwargs) -> str:
 
 
 def _detect_system_lang() -> str:
-    """Détecte la langue système et retourne 'fr' ou 'en'."""
+    """Detects the system language and returns 'fr' or 'en'."""
     try:
-        # Essaie d'abord la variable d'environnement LANG
+        # Check LANG environment variable first
         env_lang = os.environ.get("LANG", "") or os.environ.get("LANGUAGE", "")
         if env_lang.lower().startswith("fr"):
             return "fr"
 
-        # Fallback sur locale Python
+        # Fallback to Python locale
         loc = locale.getdefaultlocale()
         if loc and loc[0] and loc[0].lower().startswith("fr"):
             return "fr"
 
-        # Windows : lecture du registre via locale
+        # Windows: read user default UI language
         if sys.platform == "win32":
             import ctypes
             lang_id = ctypes.windll.kernel32.GetUserDefaultUILanguage()
@@ -79,13 +80,13 @@ def _detect_system_lang() -> str:
 
 def select_language() -> str:
     """
-    Affiche le menu de sélection de langue.
-    Détecte la locale système, propose confirmation, ou menu manuel.
-    Retourne le code langue choisi ('fr' ou 'en').
+    Displays the language selection menu.
+    Detects system locale, offers confirmation, or manual selection menu.
+    Returns the chosen language code ('fr' or 'en').
     """
     global _translations, _current_lang
 
-    # Charge EN par défaut pour le menu initial
+    # Load EN by default for initial menu
     _translations = _load("en")
     _current_lang = "en"
 
@@ -101,11 +102,11 @@ def select_language() -> str:
     ))
     console.print()
 
-    # Affiche la langue détectée et demande confirmation
+    # Display detected language and prompt for choice
     rprint(f"  [dim]Langue détectée / Detected language:[/dim] [bold cyan]{detected_name}[/bold cyan]")
     console.print()
 
-    # Propose les options
+    # Propose options
     rprint("  [bold]1.[/bold]  Français")
     rprint("  [bold]2.[/bold]  English")
     console.print()
@@ -120,7 +121,7 @@ def select_language() -> str:
         if choice in SUPPORTED_LANGS:
             chosen = SUPPORTED_LANGS[choice]
             break
-        # Accepte aussi "fr"/"en" directement
+        # Accept direct "fr"/"en"
         elif choice.lower() in ("fr", "français", "francais"):
             chosen = "fr"
             break
@@ -130,7 +131,7 @@ def select_language() -> str:
         else:
             rprint("  [red]Choix invalide / Invalid choice. Entrez 1 ou 2.[/red]")
 
-    # Charge la langue choisie
+    # Load selected language
     _translations = _load(chosen)
     _current_lang = chosen
 
@@ -142,5 +143,5 @@ def select_language() -> str:
 
 
 def get_lang() -> str:
-    """Retourne la langue courante."""
+    """Returns current active language code."""
     return _current_lang

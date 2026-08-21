@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 """
 SecureWipe v2.0.0
-Outil open source d'effacement sécurisé de supports de stockage.
-Conforme ANSSI Palier 1/2 et NIST SP 800-88 Rev.2.
+Open-source tool for secure storage device sanitization.
+Compliant with ANSSI Tier 1/2 and NIST SP 800-88 Rev.2.
 
-Licence : GPL v3
-Auteur  : Grujowmi <grujowmi@proton.me>
+Author  : TEAM SOLUTION
 Usage   :
   Linux   : sudo python3 securewipe.py
   Test    : sudo python3 securewipe.py --test-disk /tmp/testdisk.img
   Mock    : sudo python3 securewipe.py --mock
-  Windows : python securewipe.py (en tant qu'Administrateur)
+  Windows : python securewipe.py (run as Administrator)
 """
 
 import os
@@ -19,7 +18,7 @@ import platform
 import argparse
 from pathlib import Path
 
-# Ajoute le répertoire du script au path Python
+# Add the script directory to the Python path
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
 
@@ -31,7 +30,7 @@ if sys.platform == "win32":
         pass
 
 # ──────────────────────────────────────────────
-# Imports modules SecureWipe
+# SecureWipe module imports
 # ──────────────────────────────────────────────
 
 from core.i18n  import select_language, t
@@ -55,7 +54,7 @@ IS_LINUX   = sys.platform != "win32"
 
 
 # ──────────────────────────────────────────────
-# Chargement du module disque selon l'OS
+# Load disk module based on OS
 # ──────────────────────────────────────────────
 
 def _get_disk_module():
@@ -67,7 +66,7 @@ def _get_disk_module():
 
 
 # ──────────────────────────────────────────────
-# Sélection du dossier de sortie certificat
+# Certificate output directory selection
 # ──────────────────────────────────────────────
 
 def _prompt_output_dir() -> Path:
@@ -84,39 +83,39 @@ def _prompt_output_dir() -> Path:
         p.mkdir(parents=True, exist_ok=True)
         return p
     except Exception as e:
-        rprint(f"  [yellow]⚠ Dossier invalide ({e}) — utilisation du dossier script.[/yellow]")
+        rprint(f"  [yellow]⚠ Invalid directory ({e}) — using script directory.[/yellow]")
         return SCRIPT_DIR
 
 
 # ──────────────────────────────────────────────
-# Boucle principale : un disque
+# Main loop: one disk
 # ──────────────────────────────────────────────
 
 def _wipe_one_disk(operator: dict, dm, test_disk_path: str = None) -> bool:
     """
-    Gère l'effacement complet d'un disque :
-      détection → sélection → crypto → mode → confirmation → effacement → certificat
-    Retourne True si l'opération s'est déroulée sans erreur fatale.
+    Handles the complete wipe of a disk:
+      detection → selection → crypto → mode → confirmation → wipe → certificate
+    Returns True if the operation completed without fatal error.
     """
     from pathlib import Path as _Path
 
-    # ── Détection des disques ──
+    # ── Disk detection ──
     print_section(t("disk_title"))
     rprint(f"  [dim]{t('disk_scanning')}[/dim]")
     console.print()
 
-    # Mode test : injecte un fichier image comme faux disque
+    # Test mode: inject an image file as a fake disk
     if test_disk_path:
         p = _Path(test_disk_path)
         if not p.exists():
-            rprint(f"  [bold red]Fichier introuvable : {test_disk_path}[/bold red]")
+            rprint(f"  [bold red]File not found: {test_disk_path}[/bold red]")
             return False
         import os as _os
         from core.disk_linux import DiskInfo, DISK_TYPE_HDD, ENC_NONE, _bytes_to_human
         size = p.stat().st_size
         disks = [DiskInfo(
             device=str(p), name=p.name,
-            model="[TEST] Fichier image",
+            model="[TEST] Image file",
             serial="TEST-0001",
             disk_type=DISK_TYPE_HDD,
             size_bytes=size,
@@ -130,39 +129,38 @@ def _wipe_one_disk(operator: dict, dm, test_disk_path: str = None) -> bool:
     else:
         disks = dm.list_disks()
 
-    # Fallback mocks si container sandboxé (dev uniquement)
+    # Fallback mocks if sandboxed container (dev only)
     if not disks:
         rprint(f"  [yellow]{t('disk_none_found')}[/yellow]")
-        # En prod on quitterait ici. Pour le dev :
         if os.environ.get("SECUREWIPE_MOCK") == "1":
-            rprint("  [dim](Mode mock activé — SECUREWIPE_MOCK=1)[/dim]")
+            rprint("  [dim](Mock mode enabled — SECUREWIPE_MOCK=1)[/dim]")
             disks = dm._mock_disks()
         else:
             return False
 
     print_disk_table(disks)
 
-    # ── Sélection du disque ──
+    # ── Disk selection ──
     disk = select_disk(disks)
 
-    # ── Analyse crypto ──
-    rprint(f"\n  [dim]Analyse du chiffrement...[/dim]")
+    # ── Crypto analysis ──
+    rprint(f"\n  [dim]Analyzing encryption...[/dim]")
     crypto_profile = analyse_disk_crypto(disk)
 
-    # Affiche warnings SED frozen si présents
+    # Display SED frozen warnings if present
     for warn in crypto_profile.warnings:
         console.print()
         rprint(f"  [yellow]{warn}[/yellow]")
 
-    # ── Sélection du mode d'effacement ──
+    # ── Wipe mode selection ──
     mode, custom_passes, verify_pct, mode_label = select_wipe_mode(disk, crypto_profile)
 
-    # ── Confirmation finale ──
+    # ── Final confirmation ──
     confirmed = confirm_wipe(disk, mode_label)
     if not confirmed:
-        return True   # Pas une erreur — l'utilisateur a annulé
+        return True   # Not an error — user cancelled
 
-    # ── Effacement ──
+    # ── Wipe ──
     result = run_wipe(
         disk=disk,
         mode=mode,
@@ -171,7 +169,7 @@ def _wipe_one_disk(operator: dict, dm, test_disk_path: str = None) -> bool:
         crypto_profile=crypto_profile,
     )
 
-    # ── Certificat ──
+    # ── Certificate ──
     console.print()
     output_dir = _prompt_output_dir()
 
@@ -189,14 +187,14 @@ def _wipe_one_disk(operator: dict, dm, test_disk_path: str = None) -> bool:
         rprint(f"  {t('cert_success', path=pdf_path)}")
         rprint(f"  {t('cert_log_success', path=txt_path)}")
     except Exception as e:
-        rprint(f"  [red]Erreur génération certificat : {e}[/red]")
+        rprint(f"  [red]Certificate generation error: {e}[/red]")
 
     console.print()
     return result.status == WipeStatus.SUCCESS
 
 
 # ──────────────────────────────────────────────
-# Vérification OS supporté
+# Supported OS check
 # ──────────────────────────────────────────────
 
 def _check_os():
@@ -204,22 +202,21 @@ def _check_os():
         rprint(t("err_os_unsupported", os=sys.platform))
         sys.exit(1)
     if sys.platform == "darwin":
-        # macOS — non supporté officiellement mais les modules Linux fonctionnent
-        rprint("[yellow]⚠ macOS non officiellement supporté. Continuez à vos risques.[/yellow]")
+        rprint("[yellow]⚠ macOS is not officially supported. Proceed at your own risk.[/yellow]")
 
 
 # ──────────────────────────────────────────────
-# Point d'entrée
+# Entry point
 # ──────────────────────────────────────────────
 
 def _parse_args():
-    """Parse les arguments de ligne de commande."""
+    """Parse command-line arguments."""
     parser = argparse.ArgumentParser(
         prog="securewipe",
-        description="SecureWipe — Effacement sécurisé de supports (ANSSI/NIST)",
+        description="SecureWipe — Secure storage sanitization (ANSSI/NIST)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Exemples :
+Examples:
   sudo python3 securewipe.py
   sudo python3 securewipe.py --test-disk /tmp/testdisk.img
   sudo python3 securewipe.py --mock
@@ -228,29 +225,28 @@ Exemples :
     parser.add_argument(
         "--cli",
         action="store_true",
-        help="Force le mode terminal (pas de GUI).",
+        help="Force terminal mode (no GUI).",
     )
     parser.add_argument(
         "--gui",
         action="store_true",
-        help="Force le mode graphique (CustomTkinter).",
+        help="Force graphical mode (CustomTkinter).",
     )
     parser.add_argument(
         "--test-disk",
-        metavar="FICHIER",
-        help="Utilise un fichier image comme faux disque (mode test Linux/WSL). "
-             "Ex: sudo python3 securewipe.py --test-disk /tmp/testdisk.img",
+        metavar="FILE",
+        help="Use an image file as a fake disk (test mode Linux/WSL).",
     )
     parser.add_argument(
         "--mock",
         action="store_true",
-        help="Charge des disques fictifs pour tester l'interface (Windows et Linux).",
+        help="Load mock disks for interface testing (Windows and Linux).",
     )
     return parser.parse_args()
 
 
 def _gui_available() -> bool:
-    """Vérifie si CustomTkinter est disponible et qu'un display existe."""
+    """Check if CustomTkinter is available and a display exists."""
     try:
         import customtkinter
         if IS_LINUX and not os.environ.get("DISPLAY") and not os.environ.get("WAYLAND_DISPLAY"):
@@ -261,12 +257,12 @@ def _gui_available() -> bool:
 
 
 def _ask_mode() -> str:
-    """Demande à l'utilisateur GUI ou CLI au lancement."""
+    """Ask the user to choose GUI or CLI at launch."""
     console.print()
     rprint("  [bold cyan]SecureWipe v2.0.0[/bold cyan]")
     console.print()
-    rprint("  [bold]1.[/bold]  Interface graphique (GUI)")
-    rprint("  [bold]2.[/bold]  Interface terminal  (CLI)")
+    rprint("  [bold]1.[/bold]  Graphical interface (GUI)")
+    rprint("  [bold]2.[/bold]  Terminal interface  (CLI)")
     console.print()
     from rich.prompt import Prompt
     choice = Prompt.ask("  Mode", choices=["1","2"], default="1").strip()
@@ -276,13 +272,13 @@ def _ask_mode() -> str:
 def main():
     args = _parse_args()
 
-    # Injecte les arguments dans les variables d'environnement
+    # Inject arguments into environment variables
     if args.test_disk:
         os.environ["SECUREWIPE_DEV"] = args.test_disk
     if args.mock:
         os.environ["SECUREWIPE_MOCK"] = "1"
 
-    # Détermine le mode
+    # Determine the mode
     if getattr(args, "gui", False):
         mode = "gui"
     elif getattr(args, "cli", False):
@@ -292,10 +288,9 @@ def main():
     else:
         mode = "cli"
         console.print()
-        rprint("  [dim]GUI non disponible (CustomTkinter absent ou pas de display) — mode terminal.[/dim]")
+        rprint("  [dim]GUI not available (CustomTkinter missing or no display) — terminal mode.[/dim]")
 
     if mode == "gui":
-        # Détecte la langue système
         from core.i18n import _detect_system_lang
         lang = _detect_system_lang()
         from gui.app import run_gui
@@ -303,26 +298,26 @@ def main():
         return
 
     try:
-        # 1. Vérification OS
+        # 1. OS check
         _check_os()
 
-        # 2. Vérification privilèges (sauf en mode mock)
+        # 2. Privilege check (except in mock mode)
         if not args.mock and os.environ.get("SECUREWIPE_MOCK") != "1":
             check_privileges()
 
-        # 3. Sélection langue
+        # 3. Language selection
         select_language()
 
-        # 4. Bannière
+        # 4. Banner
         print_banner()
 
-        # 5. Identification opérateur
+        # 5. Operator identification
         operator = prompt_operator()
 
-        # 6. Chargement module disque
+        # 6. Load disk module
         dm = _get_disk_module()
 
-        # 7. Boucle multi-disques
+        # 7. Multi-disk loop
         test_disk_path = getattr(args, "test_disk", None)
         while True:
             success = _wipe_one_disk(operator, dm, test_disk_path=test_disk_path)
@@ -330,20 +325,20 @@ def main():
             if not ask_another():
                 break
 
-        # 8. Au revoir
+        # 8. Goodbye
         console.print()
         rprint(f"  {t('session_goodbye')}")
         console.print()
 
     except KeyboardInterrupt:
         console.print()
-        rprint("\n  [yellow]SecureWipe interrompu.[/yellow]")
+        rprint("\n  [yellow]SecureWipe interrupted.[/yellow]")
         sys.exit(0)
     except SystemExit:
         raise
     except Exception as e:
         console.print()
-        rprint(f"  [bold red]Erreur inattendue : {e}[/bold red]")
+        rprint(f"  [bold red]Unexpected error: {e}[/bold red]")
         import traceback
         traceback.print_exc()
         sys.exit(1)

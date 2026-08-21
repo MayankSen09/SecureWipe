@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # =============================================================================
 # SecureWipe — install.sh
-# Installation des dépendances Linux
-# Usage : sudo bash install.sh
+# Linux dependencies installation script
+# Author: TEAM SOLUTION
+# Usage: sudo bash install.sh
 # =============================================================================
 
 set -e
@@ -22,14 +23,14 @@ echo -e "${CYAN}${BOLD}║       SecureWipe — Installation          ║${NC}"
 echo -e "${CYAN}${BOLD}╚══════════════════════════════════════════╝${NC}"
 echo ""
 
-# ── Vérification root ──
+# ── Root check ──
 if [[ $EUID -ne 0 ]]; then
-    echo -e "${RED}ERREUR : Ce script doit être exécuté en root.${NC}"
+    echo -e "${RED}ERROR: This script must be run as root.${NC}"
     echo "  → sudo bash install.sh"
     exit 1
 fi
 
-# ── Détection distro ──
+# ── Distro detection ──
 if command -v apt-get &>/dev/null; then
     PKG_MANAGER="apt"
 elif command -v dnf &>/dev/null; then
@@ -39,16 +40,16 @@ elif command -v yum &>/dev/null; then
 elif command -v pacman &>/dev/null; then
     PKG_MANAGER="pacman"
 else
-    echo -e "${YELLOW}⚠ Gestionnaire de paquets non détecté. Installation Python uniquement.${NC}"
+    echo -e "${YELLOW}⚠ Package manager not detected. Installing Python dependencies only.${NC}"
     PKG_MANAGER="none"
 fi
 
-echo -e "  Gestionnaire de paquets : ${CYAN}${PKG_MANAGER}${NC}"
+echo -e "  Package manager: ${CYAN}${PKG_MANAGER}${NC}"
 echo ""
 
-# ── Outils système ──
+# ── System tools ──
 install_sys_tools() {
-    echo -e "${BOLD}[1/3] Installation des outils système...${NC}"
+    echo -e "${BOLD}[1/3] Installing system tools...${NC}"
 
     PKGS_APT="python3 python3-pip hdparm nvme-cli smartmontools util-linux"
     PKGS_DNF="python3 python3-pip hdparm nvme-cli smartmontools util-linux"
@@ -58,7 +59,7 @@ install_sys_tools() {
         apt)
             apt-get update -qq
             apt-get install -y $PKGS_APT 2>/dev/null || \
-                echo -e "  ${YELLOW}Certains paquets optionnels non disponibles (ignoré)${NC}"
+                echo -e "  ${YELLOW}Some optional packages unavailable (ignored)${NC}"
             ;;
         dnf|yum)
             $PKG_MANAGER install -y $PKGS_DNF 2>/dev/null || true
@@ -67,16 +68,16 @@ install_sys_tools() {
             pacman -Sy --noconfirm $PKGS_PAC 2>/dev/null || true
             ;;
         none)
-            echo -e "  ${YELLOW}Ignoré (pas de gestionnaire de paquets)${NC}"
+            echo -e "  ${YELLOW}Skipped (no package manager detected)${NC}"
             ;;
     esac
 
-    echo -e "  ${GREEN}✓${NC} Outils système"
+    echo -e "  ${GREEN}✓${NC} System tools installed"
 }
 
-# ── Python ──
+# ── Python check ──
 check_python() {
-    echo -e "${BOLD}[2/3] Vérification Python...${NC}"
+    echo -e "${BOLD}[2/3] Checking Python...${NC}"
 
     if command -v python3 &>/dev/null; then
         PY_VER=$(python3 --version 2>&1 | awk '{print $2}')
@@ -86,32 +87,32 @@ check_python() {
         if [[ $PY_MAJOR -ge 3 && $PY_MINOR -ge 10 ]]; then
             echo -e "  ${GREEN}✓${NC} Python ${PY_VER} (OK)"
         else
-            echo -e "  ${YELLOW}⚠ Python ${PY_VER} — SecureWipe nécessite Python 3.10+${NC}"
-            echo "  → Mettez à jour Python si des erreurs apparaissent."
+            echo -e "  ${YELLOW}⚠ Python ${PY_VER} — SecureWipe requires Python 3.10+${NC}"
+            echo "  → Update Python if issues occur."
         fi
     else
-        echo -e "  ${RED}✗ Python3 non trouvé. Installez Python 3.10+${NC}"
+        echo -e "  ${RED}✗ Python3 not found. Please install Python 3.10+${NC}"
         exit 1
     fi
 }
 
-# ── Dépendances Python ──
+# ── Python dependencies ──
 install_python_deps() {
-    echo -e "${BOLD}[3/3] Installation des dépendances Python...${NC}"
+    echo -e "${BOLD}[3/3] Installing Python dependencies...${NC}"
 
-    # Essaie pip3 standard puis --break-system-packages si nécessaire
+    # Try standard pip3 then --break-system-packages if needed
     if python3 -m pip install -r "${SCRIPT_DIR}/requirements.txt" --quiet 2>/dev/null; then
-        echo -e "  ${GREEN}✓${NC} Dépendances Python installées"
+        echo -e "  ${GREEN}✓${NC} Python dependencies installed"
     elif python3 -m pip install -r "${SCRIPT_DIR}/requirements.txt" \
             --break-system-packages --quiet 2>/dev/null; then
-        echo -e "  ${GREEN}✓${NC} Dépendances Python installées (--break-system-packages)"
+        echo -e "  ${GREEN}✓${NC} Python dependencies installed (--break-system-packages)"
     else
         # Fallback virtualenv
-        echo -e "  ${YELLOW}Tentative via virtualenv...${NC}"
+        echo -e "  ${YELLOW}Attempting installation via virtualenv...${NC}"
         python3 -m venv "${SCRIPT_DIR}/.venv"
         "${SCRIPT_DIR}/.venv/bin/pip" install -r "${SCRIPT_DIR}/requirements.txt" --quiet
-        echo -e "  ${GREEN}✓${NC} Dépendances installées dans .venv"
-        echo -e "  ${YELLOW}ℹ Pour utiliser le venv : source ${SCRIPT_DIR}/.venv/bin/activate${NC}"
+        echo -e "  ${GREEN}✓${NC} Dependencies installed in .venv"
+        echo -e "  ${YELLOW}ℹ To use the virtualenv: source ${SCRIPT_DIR}/.venv/bin/activate${NC}"
     fi
 }
 
@@ -119,27 +120,27 @@ install_python_deps() {
 set_permissions() {
     chmod +x "${SCRIPT_DIR}/securewipe.py"
     chmod +x "${SCRIPT_DIR}/install.sh"
-    echo -e "  ${GREEN}✓${NC} Permissions définies"
+    echo -e "  ${GREEN}✓${NC} Permissions configured"
 }
 
-# ── Vérification finale ──
+# ── Final verification ──
 verify_install() {
     echo ""
-    echo -e "${BOLD}Vérification de l'installation :${NC}"
+    echo -e "${BOLD}Verifying installation:${NC}"
 
     for tool in python3 hdparm nvme smartctl dd shred lsblk; do
         if command -v $tool &>/dev/null; then
             echo -e "  ${GREEN}✓${NC} ${tool}"
         else
-            echo -e "  ${YELLOW}✗${NC} ${tool} (optionnel)"
+            echo -e "  ${YELLOW}✗${NC} ${tool} (optional)"
         fi
     done
 
     echo ""
     if python3 -c "import rich, reportlab, qrcode, PIL" 2>/dev/null; then
-        echo -e "  ${GREEN}✓${NC} Dépendances Python OK"
+        echo -e "  ${GREEN}✓${NC} Python dependencies OK"
     else
-        echo -e "  ${RED}✗ Dépendances Python manquantes — relancez install.sh${NC}"
+        echo -e "  ${RED}✗ Missing Python dependencies — please re-run install.sh${NC}"
         exit 1
     fi
 }
@@ -156,8 +157,8 @@ verify_install
 
 echo ""
 echo -e "${GREEN}${BOLD}╔══════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}${BOLD}║   Installation terminée avec succès !    ║${NC}"
+echo -e "${GREEN}${BOLD}║   Installation completed successfully!   ║${NC}"
 echo -e "${GREEN}${BOLD}╚══════════════════════════════════════════╝${NC}"
 echo ""
-echo -e "  Lancement : ${CYAN}sudo python3 securewipe.py${NC}"
+echo -e "  Launch: ${CYAN}sudo python3 securewipe.py${NC}"
 echo ""

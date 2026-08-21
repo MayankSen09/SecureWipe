@@ -1,6 +1,7 @@
 """
 SecureWipe — api/app.py
-Service FastAPI de vérification de l'intégrité, génération de certificat PDF avec QR Code et ancrage blockchain.
+FastAPI integrity verification service, PDF certificate generator with QR Code, and blockchain ledger anchoring.
+Author: TEAM SOLUTION
 """
 
 import json
@@ -20,7 +21,7 @@ from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(title="SecureWipe Verification & PDF Certificate Generator API", version="2.0.0")
 
-# Service CORS pour tests locaux et intégration Web
+# CORS middleware for local testing and web integration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -109,7 +110,7 @@ def read_root():
 @app.get("/verify")
 def verify_hash(hash: str = Query(..., description="Blockchain block hash to verify")):
     """
-    Consulte trust/chain.json et retourne la preuve UNIQUEMENT si le hash existe dans la blockchain.
+    Queries trust/chain.json and returns proof ONLY if the hash exists in the blockchain ledger.
     Accepts hashes with or without 0x prefix.
     """
     clean_hash = _normalize_hash(hash)
@@ -155,7 +156,7 @@ def verify_hash(hash: str = Query(..., description="Blockchain block hash to ver
 @app.get("/download-pdf")
 def download_pdf(hash: str = Query(..., description="Block hash for PDF download")):
     """
-    Localise ou génère à la volée le certificat PDF associé à un block hash.
+    Locates or dynamically generates on-the-fly the PDF certificate associated with a block hash.
     Searches: generated_certs/, project root, and temp directory.
     """
     clean_hash = _normalize_hash(hash)
@@ -239,7 +240,7 @@ def download_pdf(hash: str = Query(..., description="Block hash for PDF download
 @app.post("/generate-certificate")
 def generate_cert_api(payload: dict = Body(...)):
     """
-    Génère un certificat PDF complet avec QR Code et retourne le block hash + lien PDF.
+    Generates a full PDF certificate with QR Code and returns the block hash + PDF link.
     
     IMPORTANT: generate_certificate() internally calls anchor() which writes the block
     to chain.json with full metadata. We do NOT call anchor() again here to avoid

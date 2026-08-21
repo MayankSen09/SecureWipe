@@ -1,4 +1,7 @@
-"""SecureWipe GUI — Step 1 : Opérateur"""
+"""
+SecureWipe GUI — Step 1: Operator
+Author: TEAM SOLUTION
+"""
 import sys, socket, platform
 from datetime import datetime
 import customtkinter as ctk
@@ -6,7 +9,7 @@ from gui.theme import *
 from core.i18n import t
 
 class Step1Operator(ctk.CTkFrame):
-    def __init__(self, master, lang="fr", **kw):
+    def __init__(self, master, lang="en", **kw):
         super().__init__(master, fg_color="transparent", **kw)
         self._lang = lang
         self._build()
@@ -14,7 +17,7 @@ class Step1Operator(ctk.CTkFrame):
     def _build(self):
         ctk.CTkLabel(self, text=t("prompt_operator_title"),
             font=FONT_TITLE, text_color=TEXT_PRIMARY).pack(pady=(32,4))
-        ctk.CTkLabel(self, text="Renseignez vos informations avant de commencer.",
+        ctk.CTkLabel(self, text="Please enter your operator information before starting.",
             font=FONT_BODY, text_color=TEXT_SECOND).pack(pady=(0,28))
 
         card = ctk.CTkFrame(self, fg_color=BG_CARD, corner_radius=RADIUS,
@@ -22,23 +25,23 @@ class Step1Operator(ctk.CTkFrame):
         card.pack(fill="x", padx=60, pady=4)
         card.columnconfigure(1, weight=1)
 
-        # Nom
+        # Name
         ctk.CTkLabel(card, text=t("prompt_operator_name"),
             font=FONT_BODY, text_color=TEXT_SECOND, anchor="w"
             ).grid(row=0, column=0, padx=(24,12), pady=(24,8), sticky="w")
         self._name_var = ctk.StringVar()
         self._name_entry = ctk.CTkEntry(card, textvariable=self._name_var,
-            placeholder_text="Ex : Pierre Antoine", font=FONT_BODY,
+            placeholder_text="e.g.: John Doe", font=FONT_BODY,
             fg_color=BG_INPUT, border_color=BORDER, text_color=TEXT_PRIMARY,
             height=BTN_H, corner_radius=RADIUS_SM)
         self._name_entry.grid(row=0, column=1, padx=(0,24), pady=(24,8), sticky="ew")
 
-        # Langue
-        ctk.CTkLabel(card, text="Langue / Language",
+        # Language
+        ctk.CTkLabel(card, text="Language / Langue",
             font=FONT_BODY, text_color=TEXT_SECOND, anchor="w"
             ).grid(row=1, column=0, padx=(24,12), pady=8, sticky="w")
         self._lang_var = ctk.StringVar(value="Français" if self._lang=="fr" else "English")
-        ctk.CTkOptionMenu(card, values=["Français","English"],
+        ctk.CTkOptionMenu(card, values=["English", "Français"],
             variable=self._lang_var, command=self._on_lang,
             fg_color=BLUE_DARK, button_color=BLUE_PRIMARY,
             button_hover_color=BLUE_LIGHT, text_color=TEXT_PRIMARY,
@@ -48,7 +51,7 @@ class Step1Operator(ctk.CTkFrame):
         self._err = ctk.CTkLabel(card, text="", font=FONT_SMALL, text_color=RED_DANGER)
         self._err.grid(row=2, column=0, columnspan=2, padx=24, pady=(0,16))
         self._name_entry.focus()
-        # Entrée → valide et passe à l'étape suivante
+        # Enter → validate and proceed to next step
         self._name_entry.bind("<Return>", lambda e: self.event_generate("<<NextStep>>"))
 
     def _on_lang(self, val):
@@ -60,7 +63,7 @@ class Step1Operator(ctk.CTkFrame):
     def validate(self):
         name = self._name_var.get().strip()
         if not name:
-            self._err.configure(text="Ce champ est obligatoire.")
+            self._err.configure(text="This field is required.")
             self._name_entry.configure(border_color=RED_DANGER)
             return None
         self._err.configure(text="")

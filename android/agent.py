@@ -1,7 +1,8 @@
 """
 SecureWipe — android/agent.py
-Agent de purge sécurisée pour appareils mobiles Android via ADB / Fastboot.
-Supporte le mode --mock pour les démonstrations sans téléphone physique.
+Secure sanitization agent for Android mobile devices via ADB / Fastboot.
+Supports --mock mode for testing without a physical phone.
+Author: TEAM SOLUTION
 """
 
 import argparse
@@ -14,7 +15,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-# Importer les modules core SecureWipe
+# Import core SecureWipe modules
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE_DIR))
 
@@ -51,7 +52,7 @@ def detect_android_device(mock: bool = False) -> dict:
         print("[!] No ADB device detected. Use --mock flag for simulation.")
         sys.exit(1)
 
-    # Récupère les propriétés du téléphone via getprop
+    # Retrieve phone properties via getprop
     _, model = run_adb_cmd(["adb", "shell", "getprop", "ro.product.model"])
     _, serial = run_adb_cmd(["adb", "shell", "getprop", "ro.serialno"])
     _, android_ver = run_adb_cmd(["adb", "shell", "getprop", "ro.build.version.release"])

@@ -1,6 +1,7 @@
 """
 SecureWipe GUI — theme.py
-Couleurs, polices et constantes visuelles.
+Colors, fonts, and visual constants.
+Author: TEAM SOLUTION
 """
 
 BG_DARK      = "#0a0e1a"

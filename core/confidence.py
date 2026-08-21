@@ -1,6 +1,7 @@
 """
 SecureWipe — core/confidence.py
-Module pour le calcul du score de confiance de l'effacement (0–100).
+Module for computing the wipe confidence score (0–100).
+Author: TEAM SOLUTION
 """
 
 def compute_score(
@@ -12,10 +13,10 @@ def compute_score(
     crypto_erase: bool = False,
 ) -> int:
     """
-    Calcule le score de confiance de l'effacement de 0 à 100.
-    - Effacement firmware / crypto réussi : +50
-    - Échantillonnage de vérification réussi : +30
-    - HPA non détectée ou effacée : +20
+    Computes the wipe confidence score from 0 to 100.
+    - Firmware wipe / crypto erase successful: +50
+    - Verification sampling passed: +30
+    - HPA not detected or wiped: +20
     """
     score = 0
     if ata_success or nvme_success or crypto_erase:

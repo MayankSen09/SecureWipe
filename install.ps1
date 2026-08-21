@@ -2,7 +2,8 @@
 <#
 .SYNOPSIS
     SecureWipe - install.ps1
-    Installation des dependances Windows
+    Windows dependency installation script
+    Author: TEAM SOLUTION
 .EXAMPLE
     powershell.exe -ExecutionPolicy Bypass -File install.ps1
 #>
@@ -33,16 +34,16 @@ $IsAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIden
 )
 
 if (-not $IsAdmin) {
-    Write-Err "Ce script doit etre execute en tant qu'Administrateur."
-    Write-Info "Clic droit sur install.ps1 -> Executer en tant qu'administrateur"
+    Write-Err "This script must be executed as Administrator."
+    Write-Info "Right-click on install.ps1 -> Run as administrator"
     Write-Host ""
-    Read-Host "Appuyez sur Entree pour quitter"
+    Read-Host "Press Enter to exit"
     exit 1
 }
 
-Write-Ok "Droits administrateur confirmes"
+Write-Ok "Administrator privileges confirmed"
 
-Write-Header "[1/4] Verification de Python"
+Write-Header "[1/4] Checking Python"
 
 $PythonCmd = $null
 
@@ -53,59 +54,59 @@ foreach ($cmd in @("python3", "python", "py")) {
             $foundVer = [Version]$matches[1]
             if ($foundVer -ge $PythonMinVersion) {
                 $PythonCmd = $cmd
-                Write-Ok "Python $foundVer trouve ($cmd)"
+                Write-Ok "Python $foundVer found ($cmd)"
                 break
             } else {
-                Write-Warn "Python $foundVer trouve mais trop ancien (minimum 3.10)"
+                Write-Warn "Python $foundVer found but too old (minimum 3.10 required)"
             }
         }
     } catch {}
 }
 
 if (-not $PythonCmd) {
-    Write-Warn "Python 3.10+ non trouve. Tentative via winget..."
+    Write-Warn "Python 3.10+ not found. Attempting installation via winget..."
     try {
         winget install Python.Python.3.12 --silent --accept-package-agreements --accept-source-agreements
         $machinePath = [System.Environment]::GetEnvironmentVariable("PATH", "Machine")
         $userPath    = [System.Environment]::GetEnvironmentVariable("PATH", "User")
         $env:PATH    = $machinePath + ";" + $userPath
         $PythonCmd   = "python"
-        Write-Ok "Python installe via winget"
+        Write-Ok "Python installed via winget"
     } catch {
-        Write-Err "Impossible d'installer Python automatiquement."
-        Write-Info "Telechargez Python 3.10+ sur https://www.python.org/downloads/"
-        Write-Info "Cochez 'Add Python to PATH' lors de l'installation"
+        Write-Err "Unable to install Python automatically."
+        Write-Info "Download Python 3.10+ from https://www.python.org/downloads/"
+        Write-Info "Check 'Add Python to PATH' during installation"
         Write-Host ""
-        Read-Host "Appuyez sur Entree pour quitter"
+        Read-Host "Press Enter to exit"
         exit 1
     }
 }
 
-Write-Header "[2/4] Installation des dependances Python"
+Write-Header "[2/4] Installing Python dependencies"
 
 $RequirementsFile = Join-Path $ScriptDir "requirements.txt"
 
 if (-not (Test-Path $RequirementsFile)) {
-    Write-Err "requirements.txt non trouve dans $ScriptDir"
+    Write-Err "requirements.txt not found in $ScriptDir"
     exit 1
 }
 
 try {
     Write-Info "pip install -r requirements.txt..."
     & $PythonCmd -m pip install -r $RequirementsFile --quiet --upgrade
-    Write-Ok "Dependances Python installees"
+    Write-Ok "Python dependencies installed successfully"
 } catch {
-    Write-Err "Erreur pip : $_"
-    Write-Info "Commande manuelle : $PythonCmd -m pip install rich reportlab qrcode[pil] Pillow psutil"
+    Write-Err "pip error: $_"
+    Write-Info "Manual command: $PythonCmd -m pip install rich reportlab qrcode[pil] Pillow psutil fastapi uvicorn"
     exit 1
 }
 
-Write-Header "[3/4] Verification des outils Windows"
+Write-Header "[3/4] Verifying Windows tools"
 
 $tools = @{
-    "manage-bde" = "Gestion BitLocker (natif Windows)"
-    "diskpart"   = "Gestion disques (natif Windows)"
-    "cipher"     = "Chiffrement EFS (natif Windows)"
+    "manage-bde" = "BitLocker Management (Windows native)"
+    "diskpart"   = "Disk Management (Windows native)"
+    "cipher"     = "EFS Encryption (Windows native)"
 }
 
 foreach ($tool in $tools.Keys) {
@@ -113,42 +114,42 @@ foreach ($tool in $tools.Keys) {
     if ($found) {
         Write-Ok "$tool -- $($tools[$tool])"
     } else {
-        Write-Warn "$tool non trouve -- $($tools[$tool])"
+        Write-Warn "$tool not found -- $($tools[$tool])"
     }
 }
 
 try {
     $null = Get-PhysicalDisk -ErrorAction Stop
-    Write-Ok "Get-PhysicalDisk disponible"
+    Write-Ok "Get-PhysicalDisk available"
 } catch {
-    Write-Warn "Get-PhysicalDisk non disponible -- fallback WMI sera utilise"
+    Write-Warn "Get-PhysicalDisk unavailable -- WMI fallback will be used"
 }
 
-Write-Header "[4/4] Verification finale"
+Write-Header "[4/4] Final verification"
 
 try {
     $check = & $PythonCmd -c "import rich, reportlab, qrcode, PIL; print('OK')" 2>&1
     if ($check -eq "OK") {
-        Write-Ok "Toutes les dependances Python sont disponibles"
+        Write-Ok "All Python dependencies are available"
     } else {
-        Write-Err "Dependances Python incompletes : $check"
+        Write-Err "Incomplete Python dependencies: $check"
         exit 1
     }
 } catch {
-    Write-Err "Erreur de verification : $_"
+    Write-Err "Verification error: $_"
     exit 1
 }
 
 Write-Host ""
 Write-Host "  +------------------------------------------+" -ForegroundColor Green
-Write-Host "  |  Installation terminee avec succes !     |" -ForegroundColor Green
+Write-Host "  |   Installation completed successfully!   |" -ForegroundColor Green
 Write-Host "  +------------------------------------------+" -ForegroundColor Green
 Write-Host ""
-Write-Host "  Lancement normal (admin requis) :" -ForegroundColor White
+Write-Host "  Standard launch (requires Administrator) :" -ForegroundColor White
 Write-Host "  $PythonCmd securewipe.py" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "  Mode mock (test sans effacement reel) :" -ForegroundColor White
-Write-Host "  Set SECUREWIPE_MOCK=1 puis : $PythonCmd securewipe.py" -ForegroundColor Cyan
+Write-Host "  Mock mode (testing without actual wiping) :" -ForegroundColor White
+Write-Host "  Set SECUREWIPE_MOCK=1 then run: $PythonCmd securewipe.py" -ForegroundColor Cyan
 Write-Host ""
 
-Read-Host "Appuyez sur Entree pour quitter"
+Read-Host "Press Enter to exit"

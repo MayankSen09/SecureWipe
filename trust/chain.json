@@ -358,5 +358,29 @@
     "block_hash": "ab8efeda8b20a31aa2a8559c154f4909c2653cd7b9e2468b4305d071177ba0aa",
     "cert_pdf_hash": "092bfcd367164a52b7f5b7257f13a6719826f2a37979557e71abb602cb5cda52",
     "index": 29
+  },
+  {
+    "timestamp": 1787341530.297035,
+    "meta_hash": "0fd19c1da548ea244c0a0a21720fda12ef7e26b3a94825335f26c573313d8810",
+    "prev_hash": "ab8efeda8b20a31aa2a8559c154f4909c2653cd7b9e2468b4305d071177ba0aa",
+    "device": "[MOCK] \\\\.\\PhysicalDrive0",
+    "serial": "S5YXNX0T654321",
+    "method": "ANSSI Tier 1 (1-pass zeros)",
+    "confidence_score": 100,
+    "block_hash": "268da903c5f084fc4323dcb505d49aea9fe1c5a55a4808cd09c8a8e847b3943d",
+    "cert_pdf_hash": "bc1f85cd6bb50b322b54e77d91d01fe7287f8f94f5b0e9d7ec7fb7e21855ada9",
+    "index": 30
+  },
+  {
+    "timestamp": 1787341611.593662,
+    "meta_hash": "4c12dc1c12b59c472a75476297aef8b4366da8c04753a2d4c86bca34a3f6d66a",
+    "prev_hash": "268da903c5f084fc4323dcb505d49aea9fe1c5a55a4808cd09c8a8e847b3943d",
+    "device": "[MOCK] \\\\.\\PhysicalDrive0",
+    "serial": "S5YXNX0T654321",
+    "method": "ANSSI Tier 1 (1-pass zeros)",
+    "confidence_score": 100,
+    "block_hash": "549180034ec26e9df4de764f316c471bc2887671ff1a44293751d3685d6c4f55",
+    "cert_pdf_hash": "2a9b7f8c0c47cbdab60e7e7d23d603121ca39e8e382e40bbbea3cfe2dd23d0f0",
+    "index": 31
   }
 ]
