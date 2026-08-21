@@ -251,6 +251,7 @@ def generate_cert_api(payload: dict = Body(...)):
     operator_name = str(payload.get("operator", "Enterprise Asset Manager")).strip()[:64] or "Enterprise Asset Manager"
     org = str(payload.get("organization", "Ministry of Mines IT Division")).strip()[:128] or "Ministry of Mines IT Division"
     try:
+        # Enforce 0-100 bounds on confidence score
         confidence_score = max(0, min(100, int(payload.get("confidence_score", 100))))
     except (ValueError, TypeError):
         confidence_score = 100
