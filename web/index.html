@@ -1164,7 +1164,7 @@
       return h;
     }
 
-    // --- HTML Escaping helper to prevent XSS ---
+    // --- HTML Escaping helper function to prevent script injection (XSS) ---
     function escapeHtml(str) {
       if (!str) return '';
       return String(str)
