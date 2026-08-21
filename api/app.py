@@ -16,6 +16,7 @@ from typing import Optional
 from fastapi import FastAPI, HTTPException, Query, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(title="SecureWipe Verification & PDF Certificate Generator API", version="2.0.0")
 
@@ -31,6 +32,10 @@ app.add_middleware(
 BASE_DIR = Path(__file__).resolve().parent.parent
 CHAIN_FILE = BASE_DIR / "trust" / "chain.json"
 WEB_DIR = BASE_DIR / "web"
+
+# Persistent directory for API-generated certificates (survives server restarts)
+GENERATED_CERTS_DIR = BASE_DIR / "generated_certs"
+GENERATED_CERTS_DIR.mkdir(parents=True, exist_ok=True)
 
 CERTIFIED_RECYCLERS = [
     {
@@ -60,6 +65,27 @@ CERTIFIED_RECYCLERS = [
 ]
 
 
+def _normalize_hash(raw: str) -> str:
+    """Strip whitespace and optional 0x prefix from a hash string."""
+    h = raw.strip()
+    if h.lower().startswith("0x"):
+        h = h[2:]
+    return h
+
+
+def _read_last_block_hash() -> Optional[str]:
+    """Read the block_hash of the most recently appended block in chain.json."""
+    if CHAIN_FILE.exists():
+        try:
+            with open(CHAIN_FILE, "r", encoding="utf-8") as f:
+                chain = json.load(f)
+            if chain:
+                return chain[-1].get("block_hash")
+        except Exception:
+            pass
+    return None
+
+
 class MockDisk:
     def __init__(self, model: str, serial: str, device: str = "/dev/nvme0n1", size_bytes: int = 512000000000, size_human: str = "512.0 GB", disk_type: str = "nvme", encryption: str = "none"):
         self.model = model
@@ -83,8 +109,9 @@ def read_root():
 def verify_hash(hash: str = Query(..., description="Blockchain block hash to verify")):
     """
     Consulte trust/chain.json et retourne la preuve UNIQUEMENT si le hash existe dans la blockchain.
+    Accepts hashes with or without 0x prefix.
     """
-    clean_hash = hash.strip()
+    clean_hash = _normalize_hash(hash)
 
     if CHAIN_FILE.exists():
         try:
@@ -128,8 +155,9 @@ def verify_hash(hash: str = Query(..., description="Blockchain block hash to ver
 def download_pdf(hash: str = Query(..., description="Block hash for PDF download")):
     """
     Localise ou génère à la volée le certificat PDF associé à un block hash.
+    Searches: generated_certs/, project root, and temp directory.
     """
-    clean_hash = hash.strip()
+    clean_hash = _normalize_hash(hash)
     matched_block = None
 
     if CHAIN_FILE.exists():
@@ -143,9 +171,12 @@ def download_pdf(hash: str = Query(..., description="Block hash for PDF download
         except Exception:
             pass
 
-    # Search for pre-generated PDF on disk or tempdir
+    # Search for pre-generated PDF on disk — check persistent dir, project root, and tempdir
     serial = matched_block.get("serial", "") if matched_block else clean_hash[:10]
-    for check_dir in [BASE_DIR, Path(tempfile.gettempdir())]:
+    search_dirs = [GENERATED_CERTS_DIR, BASE_DIR, Path(tempfile.gettempdir())]
+    for check_dir in search_dirs:
+        if not check_dir.exists():
+            continue
         for pdf_file in check_dir.glob("SW-*.pdf"):
             if serial and serial in pdf_file.name:
                 return FileResponse(str(pdf_file), filename=pdf_file.name, media_type="application/pdf")
@@ -187,14 +218,14 @@ def download_pdf(hash: str = Query(..., description="Block hash for PDF download
             hpa_wiped=False
         )
 
-        tmp_output_dir = Path(tempfile.gettempdir())
+        # Generate into persistent directory so it survives restarts
         pdf_path, _ = generate_certificate(
             operator=operator,
             disk=disk,
             result=result,
             mode_label=method_name,
             verify_pct=10,
-            output_dir=tmp_output_dir,
+            output_dir=GENERATED_CERTS_DIR,
             script_dir=BASE_DIR
         )
 
@@ -208,13 +239,20 @@ def download_pdf(hash: str = Query(..., description="Block hash for PDF download
 def generate_cert_api(payload: dict = Body(...)):
     """
     Génère un certificat PDF complet avec QR Code et retourne le block hash + lien PDF.
+    
+    IMPORTANT: generate_certificate() internally calls anchor() which writes the block
+    to chain.json with full metadata. We do NOT call anchor() again here to avoid
+    creating duplicate blocks with empty metadata.
     """
-    serial = payload.get("serial", "SW-REC-2026-X99")
-    model = payload.get("model", "Dell Latitude NVMe 512GB")
-    method = payload.get("method", "NIST SP 800-88 Purge (NVMe Format)")
-    operator_name = payload.get("operator", "Enterprise Asset Manager")
-    org = payload.get("organization", "Ministry of Mines IT Division")
-    confidence_score = int(payload.get("confidence_score", 100))
+    serial = str(payload.get("serial", "SW-REC-2026-X99")).strip()[:64] or "SW-REC-2026-X99"
+    model = str(payload.get("model", "Dell Latitude NVMe 512GB")).strip()[:128] or "Dell Latitude NVMe 512GB"
+    method = str(payload.get("method", "NIST SP 800-88 Purge (NVMe Format)")).strip()[:128] or "NIST SP 800-88 Purge"
+    operator_name = str(payload.get("operator", "Enterprise Asset Manager")).strip()[:64] or "Enterprise Asset Manager"
+    org = str(payload.get("organization", "Ministry of Mines IT Division")).strip()[:128] or "Ministry of Mines IT Division"
+    try:
+        confidence_score = max(0, min(100, int(payload.get("confidence_score", 100))))
+    except (ValueError, TypeError):
+        confidence_score = 100
 
     try:
         from cert.generator import generate_certificate
@@ -241,20 +279,22 @@ def generate_cert_api(payload: dict = Body(...)):
             hpa_wiped=False
         )
 
-        tmp_output_dir = Path(tempfile.gettempdir())
+        # Generate into persistent directory (not temp) so /download-pdf can find it
         pdf_path, _ = generate_certificate(
             operator=operator,
             disk=disk,
             result=result,
             mode_label=method,
             verify_pct=10,
-            output_dir=tmp_output_dir,
+            output_dir=GENERATED_CERTS_DIR,
             script_dir=BASE_DIR
         )
 
-        # Ancrer dans chain.json
-        from trust.blockchain import anchor
-        block_hash = anchor(pdf_path)
+        # generate_certificate() already anchored the block to chain.json internally.
+        # Read the last block hash from chain.json — this is the correct hash with full metadata.
+        block_hash = _read_last_block_hash()
+        if not block_hash:
+            raise RuntimeError("Block hash not found after certificate generation — chain.json may be corrupted.")
 
         return {
             "status": "success",
@@ -336,6 +376,9 @@ def start_wipe_web(payload: dict = Body(...)):
     """
     Triggers a secure wipe from the web interface, calculates confidence score,
     generates PDF certificate, and anchors to local blockchain ledger.
+    
+    IMPORTANT: generate_certificate() internally calls anchor() which writes the block
+    to chain.json with full metadata. We do NOT call anchor() again here.
     """
     device = payload.get("device", "PhysicalDrive0")
     model = payload.get("model", "Samsung SSD 870 EVO 500GB")
@@ -346,14 +389,13 @@ def start_wipe_web(payload: dict = Body(...)):
     try:
         from cert.generator import generate_certificate
         from core.wipe_engine import WipeResult, WipeStatus, WipeMode
-        from trust.blockchain import anchor
 
         disk = MockDisk(model=model, serial=serial, device=device)
         operator = {
             "name": operator_name,
             "org": "SecureWipe Enterprise Suite",
             "datetime": datetime.now(),
-            "machine": platform.node() if 'platform' in globals() else "SecureWipe-Web",
+            "machine": platform.node(),
             "os": sys.platform
         }
 
@@ -379,11 +421,14 @@ def start_wipe_web(payload: dict = Body(...)):
             result=result,
             mode_label=f"Web Execution ({method})",
             verify_pct=10,
-            output_dir=BASE_DIR,
+            output_dir=GENERATED_CERTS_DIR,
             script_dir=BASE_DIR
         )
 
-        block_hash = anchor(pdf_path)
+        # generate_certificate() already anchored the block — read hash from chain.json
+        block_hash = _read_last_block_hash()
+        if not block_hash:
+            raise RuntimeError("Block hash not found after certificate generation.")
 
         return {
             "status": "success",
@@ -398,4 +443,3 @@ def start_wipe_web(payload: dict = Body(...)):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Wipe error: {str(e)}")
-
