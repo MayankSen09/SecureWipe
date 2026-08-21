@@ -274,5 +274,89 @@
     "block_hash": "e96610dbe3a0023f3f5147984cab161b7aef2d837006f92116d86280aae36753",
     "cert_pdf_hash": "988cc90bfa8688f453c2cdfb5b3d0dbb8bb6f8c7b4ac4f5cd2673e5b079456c3",
     "index": 22
+  },
+  {
+    "timestamp": 1786084899.354453,
+    "meta_hash": "21fff495a7657693acd47a279ad3ddffad1a694332e409d1967136053c572682",
+    "prev_hash": "e96610dbe3a0023f3f5147984cab161b7aef2d837006f92116d86280aae36753",
+    "device": "[MOCK] \\\\.\\PhysicalDrive0",
+    "serial": "S5YXNX0T654321",
+    "method": "ANSSI Palier 1 (1-pass zeros)",
+    "confidence_score": 100,
+    "block_hash": "f19e4270b3f2f80c748bd0e37f57a5a62a6eac3f4122bcab1c102eed5c55123b",
+    "cert_pdf_hash": "f08b3e00dec76d6643bedb4209c70291150e37d7430310801a3fdb037c52005c",
+    "index": 23
+  },
+  {
+    "timestamp": 1786085723.944954,
+    "meta_hash": "18a6abe835b7a889a214f65151e3fad3b65c7a6b5de94d3dce3e301323fbec57",
+    "prev_hash": "f19e4270b3f2f80c748bd0e37f57a5a62a6eac3f4122bcab1c102eed5c55123b",
+    "device": "[MOCK] \\\\.\\PhysicalDrive0",
+    "serial": "S5YXNX0T654321",
+    "method": "ANSSI Palier 1 (1-pass zeros)",
+    "confidence_score": 100,
+    "block_hash": "36eca6441a0fcd891ebfde3eda3699997b5dd5456f750f9ae9689ff973631ad7",
+    "cert_pdf_hash": "29da1e02e323b20d19e81919ac364d3c704d1e967eac40b33849721c245ed833",
+    "index": 24
+  },
+  {
+    "timestamp": 1786090990.176158,
+    "meta_hash": "914f58e1b46aa5526a26580e34bb371628b2c66a3e2471c202e5c1856c53923e",
+    "prev_hash": "36eca6441a0fcd891ebfde3eda3699997b5dd5456f750f9ae9689ff973631ad7",
+    "device": "[MOCK] \\\\.\\PhysicalDrive0",
+    "serial": "S5YXNX0T654321",
+    "method": "ANSSI Palier 1 (1-pass zeros)",
+    "confidence_score": 100,
+    "block_hash": "e4da99eff8d537c595005dfec299b9003bbcf005ebe18000a95380888de3473e",
+    "cert_pdf_hash": "491db3e7cf6fd8d32292594077d5e649154f4034a5be5d846c0eba0b1b90de59",
+    "index": 25
+  },
+  {
+    "timestamp": 1786094907.663336,
+    "meta_hash": "2525af6fee815e95a99c9cb14e6732801c79ad49e11410e37a111af2e6d25972",
+    "prev_hash": "e4da99eff8d537c595005dfec299b9003bbcf005ebe18000a95380888de3473e",
+    "device": "[MOCK] \\\\.\\PhysicalDrive0",
+    "serial": "S5YXNX0T654321",
+    "method": "ANSSI Palier 1 (1-pass zeros)",
+    "confidence_score": 100,
+    "block_hash": "bf6b27ef4205bab8df8e41fbdc3e5de406adb856d358ef6a2d351effacf579ab",
+    "cert_pdf_hash": "7928816443496ea6a4aa551465c373b3666b349885714d0325c6e9341ef566fa",
+    "index": 26
+  },
+  {
+    "timestamp": 1786095834.326964,
+    "meta_hash": "104b4eff9f24a206dd0568a3aec8625504d8215a89f7c780065abba638fd6d47",
+    "prev_hash": "bf6b27ef4205bab8df8e41fbdc3e5de406adb856d358ef6a2d351effacf579ab",
+    "device": "[MOCK] \\\\.\\PhysicalDrive0",
+    "serial": "S5YXNX0T654321",
+    "method": "ANSSI Palier 1 (1-pass zeros)",
+    "confidence_score": 100,
+    "block_hash": "1cc136b6443772dd70540ac7bd8920fb9e8b7188e210f7efd828dae22850f318",
+    "cert_pdf_hash": "22a6264109d5baeb91409dcd9b8f0aee0e1034b18d232f27bc4ad3fc54892ea1",
+    "index": 27
+  },
+  {
+    "timestamp": 1787326939.839846,
+    "meta_hash": "f5cc1152a7eb0cbbde3b238daca1caaba702c650481f9fbcb7641a459a240330",
+    "prev_hash": "1cc136b6443772dd70540ac7bd8920fb9e8b7188e210f7efd828dae22850f318",
+    "device": "/dev/nvme0n1",
+    "serial": "SW-PROD-2026-X99",
+    "method": "NIST SP 800-88 Purge (NVMe Format / ATA Secure Erase)",
+    "confidence_score": 100,
+    "block_hash": "917f4aa3da3b59c7d4face0068cbe1f0c7e1fa5ff2c7d5786ff316baab953376",
+    "cert_pdf_hash": "838e43e5ead9b83633ee675873019c02e16b1f860360beabdb95d8a75b9e2904",
+    "index": 28
+  },
+  {
+    "timestamp": 1787328436.678167,
+    "meta_hash": "2684fad88c0461149703c68650f020dedc168b7230f83cc7fea8ff878941056a",
+    "prev_hash": "917f4aa3da3b59c7d4face0068cbe1f0c7e1fa5ff2c7d5786ff316baab953376",
+    "device": "[MOCK] \\\\.\\PhysicalDrive0",
+    "serial": "S5YXNX0T654321",
+    "method": "ANSSI Palier 1 (1-pass zeros)",
+    "confidence_score": 100,
+    "block_hash": "ab8efeda8b20a31aa2a8559c154f4909c2653cd7b9e2468b4305d071177ba0aa",
+    "cert_pdf_hash": "092bfcd367164a52b7f5b7257f13a6719826f2a37979557e71abb602cb5cda52",
+    "index": 29
   }
 ]
