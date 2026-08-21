@@ -172,7 +172,7 @@ def download_pdf(hash: str = Query(..., description="Block hash for PDF download
         except Exception:
             pass
 
-    # Search for pre-generated PDF on disk — check persistent dir, project root, and tempdir
+    # Search for pre-generated PDF on disk — inspects persistent dir, project root, and tempdir
     serial = matched_block.get("serial", "") if matched_block else clean_hash[:10]
     search_dirs = [GENERATED_CERTS_DIR, BASE_DIR, Path(tempfile.gettempdir())]
     for check_dir in search_dirs:
