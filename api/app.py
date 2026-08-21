@@ -426,7 +426,7 @@ def start_wipe_web(payload: dict = Body(...)):
             script_dir=BASE_DIR
         )
 
-        # generate_certificate() already anchored the block — read hash from chain.json
+        # Block anchored during cert generation — read newly appended block hash from chain.json
         block_hash = _read_last_block_hash()
         if not block_hash:
             raise RuntimeError("Block hash not found after certificate generation.")
