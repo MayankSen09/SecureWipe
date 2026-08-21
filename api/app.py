@@ -292,7 +292,7 @@ def generate_cert_api(payload: dict = Body(...)):
         )
 
         # generate_certificate() already anchored the block to chain.json internally.
-        # Read the last block hash from chain.json — this is the correct hash with full metadata.
+        # Read the last block hash from chain.json — retrieves anchored block with full metadata.
         block_hash = _read_last_block_hash()
         if not block_hash:
             raise RuntimeError("Block hash not found after certificate generation — chain.json may be corrupted.")
