@@ -232,13 +232,15 @@ def _section_header(title: str, st: dict):
     return tbl
 
 
+import html
+
 def _info_table(rows: list[tuple], st: dict):
     """
     Tableau à deux colonnes label/valeur.
     rows = [(label, value), ...]
     """
     data = [
-        [Paragraph(lbl, st["label"]), Paragraph(str(val), st["value"])]
+        [Paragraph(html.escape(str(lbl)), st["label"]), Paragraph(html.escape(str(val)), st["value"])]
         for lbl, val in rows
     ]
     tbl = Table(data, colWidths=[5.5*cm, 11.5*cm])
