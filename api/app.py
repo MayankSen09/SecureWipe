@@ -45,8 +45,12 @@ app.add_middleware(
 )
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
+
 CHAIN_FILE = BASE_DIR / "trust" / "chain.json"
 WEB_DIR = BASE_DIR / "web"
+
 
 # Persistent directory for API-generated certificates (survives server restarts)
 GENERATED_CERTS_DIR = BASE_DIR / "generated_certs"
