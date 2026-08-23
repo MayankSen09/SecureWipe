@@ -1,6 +1,6 @@
 """
 SecureWipe — ui.py
-Composants d'interface : bannière, saisie opérateur, menus rich.
+User Interface components: banner, operator prompts, Rich menus.
 """
 
 import sys
@@ -21,11 +21,11 @@ console = Console()
 
 
 # ──────────────────────────────────────────────
-# Bannière principale
+# Main Banner
 # ──────────────────────────────────────────────
 
 def print_banner():
-    """Affiche la bannière SecureWipe."""
+    """Prints the SecureWipe banner."""
     console.print()
     console.print(Panel(
         Text.from_markup(
@@ -39,18 +39,18 @@ def print_banner():
 
 
 def print_section(title: str):
-    """Affiche un séparateur de section."""
+    """Prints a section header rule."""
     console.print()
     console.print(Rule(f"[bold cyan]{title}[/bold cyan]", style="blue"))
     console.print()
 
 
 # ──────────────────────────────────────────────
-# Vérification des privilèges
+# Privilege Verification
 # ──────────────────────────────────────────────
 
 def check_privileges():
-    """Vérifie root/admin. Quitte proprement sinon."""
+    """Verifies root/administrator access privileges."""
     is_root = False
 
     if sys.platform == "win32":
@@ -71,17 +71,16 @@ def check_privileges():
 
 
 # ──────────────────────────────────────────────
-# Saisie des informations opérateur
+# Operator Details Input
 # ──────────────────────────────────────────────
 
 def prompt_operator() -> dict:
     """
-    Demande le nom et l'organisation de l'opérateur.
-    Retourne un dict {name, org, machine, os, datetime}.
+    Prompts for operator name and metadata.
+    Returns a dict {name, org, machine, os, datetime}.
     """
     print_section(t("prompt_operator_title"))
 
-    # Nom
     while True:
         name = Prompt.ask(
             f"  [bold]{t('prompt_operator_name')}[/bold]",
@@ -105,7 +104,7 @@ def prompt_operator() -> dict:
 
 
 # ──────────────────────────────────────────────
-# Helpers système
+# System Helpers
 # ──────────────────────────────────────────────
 
 def _get_hostname() -> str:
@@ -118,8 +117,6 @@ def _get_hostname() -> str:
 def _get_os_string() -> str:
     try:
         if sys.platform == "win32":
-            # Détection Windows 11 : build >= 22000
-            # platform.release() retourne "10" même sur Win11
             try:
                 import winreg
                 key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
@@ -134,7 +131,6 @@ def _get_os_string() -> str:
             except Exception:
                 return f"Windows {platform.version()} ({platform.machine()})"
         else:
-            # Linux : lit /etc/os-release
             try:
                 with open("/etc/os-release") as f:
                     info = {}
@@ -151,15 +147,14 @@ def _get_os_string() -> str:
 
 
 # ──────────────────────────────────────────────
-# Menu numéroté générique
+# Generic Numbered Menu
 # ──────────────────────────────────────────────
 
 def numbered_menu(title: str, options: list[tuple[str, str]], default: int = 1) -> int:
     """
-    Affiche un menu numéroté.
+    Displays a numbered selection menu.
     options = [(label, description), ...]
-    Retourne l'index 0-based du choix.
-    Si title est vide, n'affiche pas de séparateur de section.
+    Returns zero-based index of chosen option.
     """
     if title:
         print_section(title)
@@ -171,7 +166,7 @@ def numbered_menu(title: str, options: list[tuple[str, str]], default: int = 1) 
 
     while True:
         raw = Prompt.ask(
-            "  [bold white]Choix / Choice[/bold white]",
+            "  [bold white]Choice[/bold white]",
             default=str(default),
             console=console,
         ).strip()
@@ -181,21 +176,20 @@ def numbered_menu(title: str, options: list[tuple[str, str]], default: int = 1) 
                 return idx - 1
         except ValueError:
             pass
-        rprint(f"  [red]Entrez un nombre entre 1 et {len(options)}.[/red]")
+        rprint(f"  [red]Please enter a number between 1 and {len(options)}.[/red]")
 
 
 # ──────────────────────────────────────────────
-# Confirmation finale (demande de taper le mot)
+# Final Sanitization Confirmation
 # ──────────────────────────────────────────────
 
 def confirm_wipe(disk, method_name: str) -> bool:
     """
-    Affiche le récap et demande de taper CONFIRMER/CONFIRM.
-    Retourne True si confirmé.
+    Displays summary and requests typed confirmation string.
+    Returns True if confirmed.
     """
     print_section(t("confirm_title"))
 
-    # Avertissement volumes Windows : uniquement les lettres du disque cible
     drive_letters = getattr(disk, "drive_letters", []) or getattr(disk, "mountpoints", [])
     vol_warning = ""
     if drive_letters and sys.platform == "win32":
@@ -235,11 +229,11 @@ def confirm_wipe(disk, method_name: str) -> bool:
 
 
 # ──────────────────────────────────────────────
-# Demande si on continue avec un autre disque
+# Additional Disk Prompt
 # ──────────────────────────────────────────────
 
 def ask_another() -> bool:
-    """Demande si l'utilisateur veut effacer un autre disque."""
+    """Prompts operator to sanitize another drive."""
     console.print()
     answer = Prompt.ask(
         f"  {t('session_another')}",
@@ -250,7 +244,7 @@ def ask_another() -> bool:
 
 
 # ──────────────────────────────────────────────
-# Affichage de la liste des disques
+# Disk Table Display
 # ──────────────────────────────────────────────
 
 from core.disk_linux import (
@@ -261,7 +255,7 @@ from rich.table import Table
 
 
 def print_disk_table(disks: list) -> None:
-    """Affiche le tableau des disques détectés."""
+    """Displays table of detected storage devices."""
     table = Table(
         show_header=True,
         header_style="bold cyan",
@@ -278,7 +272,6 @@ def print_disk_table(disks: list) -> None:
     table.add_column(t("disk_col_enc"),    width=12, justify="center")
 
     for i, disk in enumerate(disks, 1):
-        # Type
         type_map = {
             DISK_TYPE_HDD:  f"[yellow]{t('disk_type_hdd')}[/yellow]",
             DISK_TYPE_SSD:  f"[cyan]{t('disk_type_ssd')}[/cyan]",
@@ -286,7 +279,6 @@ def print_disk_table(disks: list) -> None:
         }
         dtype = type_map.get(disk.disk_type, t("disk_type_unknown"))
 
-        # Chiffrement
         enc_map = {
             ENC_LUKS:      "[green]LUKS[/green]",
             ENC_BITLOCKER: "[green]BitLocker[/green]",
@@ -295,7 +287,6 @@ def print_disk_table(disks: list) -> None:
         }
         enc = enc_map.get(disk.encryption, "[dim]—[/dim]")
 
-        # Numéro avec warning si disque système
         num_str = f"[bold]{i}[/bold]"
         dev_str = disk.device
         if disk.is_system:
@@ -317,9 +308,9 @@ def print_disk_table(disks: list) -> None:
 
 def select_disk(disks: list) -> DiskInfo:
     """
-    Affiche la table et demande à l'utilisateur de choisir un disque.
-    Bloque si le disque système est sélectionné.
-    Retourne le DiskInfo choisi.
+    Displays disk list and prompts operator for selection.
+    Blocks selection if device is identified as system disk.
+    Returns chosen DiskInfo.
     """
     while True:
         raw = Prompt.ask(
@@ -344,3 +335,4 @@ def select_disk(disks: list) -> DiskInfo:
             continue
 
         return disk
+

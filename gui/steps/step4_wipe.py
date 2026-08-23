@@ -1,4 +1,4 @@
-"""SecureWipe GUI — Step 4 : Effacement + résultat"""
+"""SecureWipe GUI — Step 4: Sanitization Execution and Results"""
 import threading, time, os, sys
 from pathlib import Path
 import customtkinter as ctk
@@ -22,7 +22,7 @@ class Step4Wipe(ctk.CTkFrame):
         ctk.CTkLabel(self, text=t("confirm_title"),
             font=FONT_TITLE, text_color=TEXT_PRIMARY).pack(pady=(20,4))
 
-        # ── Card récap ──
+        # Recap card
         self._recap = ctk.CTkFrame(self, fg_color=BG_CARD, corner_radius=RADIUS,
             border_width=1, border_color=RED_DANGER)
         self._recap.pack(fill="x", padx=60, pady=6)
@@ -36,7 +36,7 @@ class Step4Wipe(ctk.CTkFrame):
             font=FONT_HEADING, text_color=RED_DANGER)
         self._warn_lbl.pack(pady=2)
 
-        # ── Progression ──
+        # Progress bar
         prog_frame = ctk.CTkFrame(self, fg_color=BG_CARD, corner_radius=RADIUS,
             border_width=1, border_color=BORDER)
         prog_frame.pack(fill="x", padx=60, pady=6)
@@ -59,10 +59,9 @@ class Step4Wipe(ctk.CTkFrame):
             font=FONT_BODY, text_color=TEXT_SECOND)
         self._eta_lbl.pack(side="right")
 
-        # ── Barre de vérification ──
+        # Verification progress bar
         self._verify_frame = ctk.CTkFrame(self, fg_color=BG_CARD,
             corner_radius=RADIUS, border_width=1, border_color=BORDER)
-        # Cachée jusqu'à la phase de vérification
 
         self._verify_bar = ctk.CTkProgressBar(self._verify_frame,
             progress_color=CYAN, fg_color=BG_INPUT,
@@ -74,31 +73,31 @@ class Step4Wipe(ctk.CTkFrame):
             font=FONT_SMALL, text_color=TEXT_SECOND)
         self._verify_lbl.pack(pady=(0,10))
 
-        # ── Résultat ──
+        # Result display
         self._result_lbl = ctk.CTkLabel(self, text="",
             font=FONT_HEADING, text_color=TEXT_PRIMARY, wraplength=700)
         self._result_lbl.pack(pady=6)
 
-        # ── Boutons post-effacement ──
+        # Post-wipe buttons
         self._post_frame = ctk.CTkFrame(self, fg_color="transparent")
         self._post_frame.pack(pady=4)
 
-        BTN_W = 220  # Même largeur pour tous les boutons post-effacement
+        BTN_W = 220
         self._pdf_btn = ctk.CTkButton(self._post_frame,
-            text="📄  Certificat PDF",
+            text="📄  PDF Certificate",
             font=FONT_BTN, height=BTN_H, width=BTN_W, corner_radius=RADIUS,
             fg_color=BLUE_PRIMARY, hover_color=BLUE_LIGHT,
             text_color="#ffffff", command=self._save_pdf)
 
         self._new_btn = ctk.CTkButton(self._post_frame,
-            text="🔄  Autre disque",
+            text="🔄  Another Disk",
             font=FONT_BTN, height=BTN_H, width=BTN_W, corner_radius=RADIUS,
             fg_color=BLUE_PRIMARY, hover_color=BLUE_LIGHT,
             text_color="#ffffff",
             command=lambda: self._app._show_step(1))
 
         self._quit_btn = ctk.CTkButton(self._post_frame,
-            text="✕  Quitter",
+            text="✕  Quit",
             font=FONT_BTN, height=BTN_H, width=BTN_W, corner_radius=RADIUS,
             fg_color=RED_DANGER, hover_color=RED_LIGHT,
             text_color="#ffffff",
@@ -133,7 +132,7 @@ class Step4Wipe(ctk.CTkFrame):
             w.pack_forget()
 
         letters = getattr(disk,"drive_letters",[]) or getattr(disk,"mountpoints",[])
-        vol_txt = f"\n  Volumes : {', '.join(letters)}" if letters else ""
+        vol_txt = f"\n  Volumes: {', '.join(letters)}" if letters else ""
         self._recap_lbl.configure(text=(
             f"  {t('report_device')} : {disk.device} — {disk.model}\n"
             f"  {t('report_size')}   : {disk.size_human}\n"
@@ -152,19 +151,12 @@ class Step4Wipe(ctk.CTkFrame):
         self._pct_lbl.configure(text="0%")
 
         def _progress_cb(done, total, elapsed):
-            """
-            Callback unique pour effacement ET vérification.
-            elapsed == 0 → phase vérification (done=blocs faits, total=blocs total)
-            elapsed  > 0 → phase effacement (done/total en bytes)
-            """
             if total <= 0: return
             if elapsed == 0:
-                # Phase vérification
                 pct = min(done / total, 1.0)
                 self.after(0, lambda p=pct, d=int(done), t2=int(total):
                     self._update_verify(p, d, t2))
             else:
-                # Phase effacement
                 pct       = min(done / total, 1.0)
                 speed     = done / elapsed if elapsed > 0.1 else 0
                 remaining = (total - done) / speed if speed > 0 else 0
@@ -192,8 +184,6 @@ class Step4Wipe(ctk.CTkFrame):
         threading.Thread(target=_worker, daemon=True).start()
 
     def _update_progress(self, pct, speed_bps, remaining_sec):
-        """Met à jour la barre et les stats — appelé dans le thread UI."""
-        # Garde-fou : le widget peut avoir été détruit (changement de langue, navigation)
         try:
             if not self.winfo_exists() or not self._bar.winfo_exists():
                 return
@@ -202,7 +192,6 @@ class Step4Wipe(ctk.CTkFrame):
         self._bar.set(pct)
         self._pct_lbl.configure(text=f"{pct*100:.1f}%")
 
-        # Vitesse
         if speed_bps >= 1024**3:
             speed_str = f"{speed_bps/1024**3:.1f} GB/s"
         elif speed_bps >= 1024**2:
@@ -213,7 +202,6 @@ class Step4Wipe(ctk.CTkFrame):
             speed_str = ""
         self._speed_lbl.configure(text=speed_str)
 
-        # ETA
         if remaining_sec > 0 and pct > 0.001:
             h, rem = divmod(int(remaining_sec), 3600)
             m, s   = divmod(rem, 60)
@@ -225,7 +213,6 @@ class Step4Wipe(ctk.CTkFrame):
             eta_str = ""
         self._eta_lbl.configure(text=eta_str)
 
-        # Temps écoulé dans le label résultat
         elapsed = int(time.time() - self._start_ts)
         h2, r2 = divmod(elapsed, 3600)
         m2, s2 = divmod(r2, 60)
@@ -234,7 +221,6 @@ class Step4Wipe(ctk.CTkFrame):
             text=f"⠿ {t('wipe_progress_label')} — {elapsed_str}",
             text_color=TEXT_SECOND)
 
-        # Quand effacement atteint 100%, prépare la barre de vérification
         if pct >= 1.0:
             self._bar.configure(progress_color=GREEN_OK)
             self._pct_lbl.configure(text="100%", text_color=GREEN_OK)
@@ -247,20 +233,18 @@ class Step4Wipe(ctk.CTkFrame):
                     text=f"⠿ {t('wipe_verify_label')} ({self._config['verify_pct']}%)...")
 
     def _update_verify(self, pct, done, total):
-        """Met à jour la barre de vérification."""
         try:
             if not self.winfo_exists(): return
         except Exception:
             return
         self._verify_bar.set(pct)
         self._verify_lbl.configure(
-            text=f"{t('wipe_verify_label')} — {done}/{total} blocs  ({pct*100:.0f}%)")
+            text=f"{t('wipe_verify_label')} — {done}/{total} blocks  ({pct*100:.0f}%)")
 
     def _on_done(self, result):
         self._running = False
         self._result  = result
 
-        # Widget peut avoir été détruit entre-temps
         try:
             if not self.winfo_exists():
                 return
@@ -273,23 +257,22 @@ class Step4Wipe(ctk.CTkFrame):
             self._recap.configure(border_color=GREEN_OK)
             self._pct_lbl.configure(text="100%", text_color=GREEN_OK)
             self._speed_lbl.configure(text="")
-            self._eta_lbl.configure(text="✓ Terminé")
+            self._eta_lbl.configure(text="✓ Completed")
 
             verify_txt = ""
             if result.verify_ok is True:
-                verify_txt = f"\n✓ Vérification OK ({result.verify_pct}%)"
+                verify_txt = f"\n✓ Verification OK ({result.verify_pct}%)"
             elif result.verify_ok is False:
-                verify_txt = f"\n✗ Vérification échouée"
+                verify_txt = f"\n✗ Verification Failed"
 
             dur = int(result.duration_sec)
             h,r = divmod(dur,3600); m,s = divmod(r,60)
             dur_str = f"{h}h {m:02d}min {s:02d}s" if h else f"{m}min {s:02d}s"
 
             self._result_lbl.configure(
-                text=f"✓ Effacement réussi — {dur_str}" + verify_txt,
+                text=f"✓ Sanitization Successful — {dur_str}" + verify_txt,
                 text_color=GREEN_OK)
 
-            # Boutons post-effacement
             self._pdf_btn.pack(side="left", padx=8, pady=4)
             self._new_btn.pack(side="left", padx=8, pady=4)
             self._quit_btn.pack(side="left", padx=8, pady=4)
@@ -298,24 +281,23 @@ class Step4Wipe(ctk.CTkFrame):
             self._bar.configure(progress_color=RED_DANGER)
             self._recap.configure(border_color=RED_DANGER)
             self._pct_lbl.configure(text="✗", text_color=RED_DANGER)
-            err = result.error_msg or "Erreur inconnue"
-            self._result_lbl.configure(text=f"✗ Échec : {err}", text_color=RED_DANGER)
+            err = result.error_msg or "Unknown error"
+            self._result_lbl.configure(text=f"✗ Failed: {err}", text_color=RED_DANGER)
             self._new_btn.pack(side="left", padx=8, pady=4)
             self._quit_btn.pack(side="left", padx=8, pady=4)
 
         self.event_generate("<<WipeDone>>")
 
     def _save_pdf(self):
-        """Dialogue de sauvegarde + génération PDF."""
         import tkinter.filedialog as fd
         ts  = self._operator["datetime"].strftime("%Y-%m-%d_%H-%M-%S")
         sn  = self._disk.serial.replace("/","_").replace("\\","_")
         default_name = f"SW-{ts}_{sn}.pdf"
 
         out_path = fd.asksaveasfilename(
-            title         = "Enregistrer le certificat",
+            title         = "Save Certificate",
             defaultextension=".pdf",
-            filetypes     = [("PDF", "*.pdf"), ("Tous les fichiers", "*.*")],
+            filetypes     = [("PDF", "*.pdf"), ("All Files", "*.*")],
             initialfile   = default_name,
             initialdir    = str(Path.home()),
         )
@@ -335,16 +317,14 @@ class Step4Wipe(ctk.CTkFrame):
                 output_dir = out_dir,
                 script_dir = SCRIPT_DIR,
             )
-            # Renomme si nécessaire
             target = out_dir / (out_name + ".pdf")
             if pdf != target and pdf.exists():
                 pdf.rename(target)
                 pdf = target
 
             self._pdf_status.configure(
-                text=f"✓ Certificat enregistré : {pdf}", text_color=GREEN_OK)
+                text=f"✓ Certificate saved: {pdf}", text_color=GREEN_OK)
 
-            # Ouvre le dossier dans l'explorateur
             import subprocess
             if sys.platform == "win32":
                 subprocess.Popen(f'explorer /select,"{pdf}"')
@@ -354,6 +334,7 @@ class Step4Wipe(ctk.CTkFrame):
                 subprocess.Popen(["xdg-open", str(pdf.parent)])
         except Exception as e:
             self._pdf_status.configure(
-                text=f"✗ Erreur : {e}", text_color=RED_DANGER)
+                text=f"✗ Error: {e}", text_color=RED_DANGER)
 
     def get_result(self): return self._result
+

@@ -54,16 +54,16 @@ from core.confidence import compute_score
 console = Console()
 
 # ──────────────────────────────────────────────
-# Constantes
+# Constants
 # ──────────────────────────────────────────────
 
-BLOCK_SIZE = 4 * 1024 * 1024   # 4 MiB — bon compromis perf/précision
+BLOCK_SIZE = 4 * 1024 * 1024   # 4 MiB — optimal balance performance/granularity
 
 class WipeMode(Enum):
-    ANSSI_P1       = auto()   # 1 passe zéros
-    ANSSI_P2       = auto()   # 1 passe aléatoire
-    NIST_PURGE     = auto()   # Secure Erase firmware
-    CRYPTO_ERASE   = auto()   # Destruction clé
+    ANSSI_P1       = auto()   # 1 pass zero
+    ANSSI_P2       = auto()   # 1 pass random
+    NIST_PURGE     = auto()   # Firmware Secure Erase
+    CRYPTO_ERASE   = auto()   # Key Destruction
     CUSTOM         = auto()   # N passes
 
 class WipeStatus(Enum):
@@ -74,7 +74,7 @@ class WipeStatus(Enum):
 
 
 # ──────────────────────────────────────────────
-# Résultat d'une opération
+# Operation Result
 # ──────────────────────────────────────────────
 
 @dataclass
@@ -88,15 +88,15 @@ class WipeResult:
     verify_pct: int = 0
     verify_ok: Optional[bool] = None
     error_msg: str = ""
-    method_detail: str = ""   # ex: "ATA Secure Erase Enhanced"
-    standard: str = ""        # ex: "ANSSI Palier 2 / NIST Clear"
+    method_detail: str = ""   # e.g.: "ATA Secure Erase Enhanced"
+    standard: str = ""        # e.g.: "ANSSI Palier 2 / NIST Clear"
     confidence_score: int = 0
     hpa_detected: bool = False
     hpa_wiped: bool = False
 
 
 # ──────────────────────────────────────────────
-# Utilitaires subprocess
+# Subprocess Utilities
 # ──────────────────────────────────────────────
 
 def _run(cmd: list, timeout: int = None, env: dict = None) -> tuple[int, str, str]:
@@ -124,7 +124,7 @@ def _tool_ok(name: str) -> bool:
 
 
 # ──────────────────────────────────────────────
-# Barre de progression Rich
+# Rich Progress Bar
 # ──────────────────────────────────────────────
 
 def _make_progress() -> Progress:
@@ -143,7 +143,7 @@ def _make_progress() -> Progress:
 
 
 # ──────────────────────────────────────────────
-# Linux — effacement par réécriture (dd-like)
+# Linux — Overwrite Wipe (dd-like)
 # ──────────────────────────────────────────────
 
 def _write_pass_linux(
@@ -155,8 +155,8 @@ def _write_pass_linux(
     progress_cb: Optional[Callable] = None,
 ) -> tuple[bool, int, str]:
     """
-    Effectue une passe d'écriture sur le device.
-    Retourne (success, bytes_written, error_msg).
+    Executes an overwrite pass on the target device.
+    Returns (success, bytes_written, error_msg).
     """
     source = "/dev/urandom" if use_random else "/dev/zero"
     label = t("wipe_progress_label") + f" ({t('wipe_pass_label')} {pass_num}/{total_passes})"
@@ -171,7 +171,6 @@ def _write_pass_linux(
         return True, disk_size, ""
 
     try:
-        # Ouvre le device en écriture directe (O_DIRECT si possible)
         flags = os.O_WRONLY
         try:
             flags |= os.O_DIRECT
@@ -182,11 +181,10 @@ def _write_pass_linux(
             fd = os.open(device, flags)
             use_direct = False
 
-        # Source de données
+        # Data source
         src_fd = os.open(source, os.O_RDONLY)
 
         buf_size = BLOCK_SIZE
-        # O_DIRECT nécessite un buffer aligné sur 512 octets
         if use_direct:
             buf_size = max(BLOCK_SIZE, 512)
 
@@ -196,7 +194,6 @@ def _write_pass_linux(
                 data = os.read(src_fd, to_write)
                 if not data:
                     break
-                # Padding si O_DIRECT et dernier bloc
                 if use_direct and len(data) % 512 != 0:
                     pad = 512 - (len(data) % 512)
                     data += b'\x00' * pad
@@ -206,7 +203,7 @@ def _write_pass_linux(
                     progress_cb(n)
         finally:
             os.close(src_fd)
-            # Flush vers le disque
+            # Flush to disk
             try:
                 os.fsync(fd)
             except Exception:
@@ -214,7 +211,7 @@ def _write_pass_linux(
             os.close(fd)
 
     except PermissionError:
-        error = "Permission refusée — root requis."
+        error = "Permission denied — root privileges required."
     except OSError as e:
         error = str(e)
     except Exception as e:
@@ -229,32 +226,31 @@ def _write_pass_linux(
 
 def _ata_secure_erase_linux(device: str, enhanced: bool = False) -> tuple[bool, str]:
     """
-    Effectue un ATA Secure Erase via hdparm.
-    Nécessite que le disque ne soit pas 'frozen'.
-    Retourne (success, error_msg).
+    Executes ATA Secure Erase via hdparm.
+    Requires disk to be non-frozen.
+    Returns (success, error_msg).
     """
     if not _tool_ok("hdparm"):
-        return False, "hdparm non disponible."
+        return False, "hdparm not available."
 
-    # 1. Définit un mot de passe temporaire (requis par le protocole)
+    # 1. Set temporary password
     tmp_pass = "SecureWipeTmp123"
     rc, _, err = _run(["hdparm", "--user-master", "u",
                         "--security-set-pass", tmp_pass, device], timeout=10)
     if rc != 0:
-        return False, f"Impossible de définir le mot de passe ATA : {err}"
+        return False, f"Failed to set ATA password: {err}"
 
-    # 2. Lance l'effacement
+    # 2. Trigger erase
     erase_cmd = "--security-erase-enhanced" if enhanced else "--security-erase"
-    rprint(f"\n  [dim]Lancement ATA {'Enhanced ' if enhanced else ''}Secure Erase...[/dim]")
+    rprint(f"\n  [dim]Triggering ATA {'Enhanced ' if enhanced else ''}Secure Erase...[/dim]")
     rc, _, err = _run(
         ["hdparm", "--user-master", "u", erase_cmd, tmp_pass, device],
-        timeout=3600,   # Peut prendre plusieurs heures sur un grand disque
+        timeout=3600,   # May take hours on large physical drives
     )
 
     if rc != 0:
-        # Tente de supprimer le mot de passe si l'effacement a échoué
         _run(["hdparm", "--user-master", "u", "--security-disable", tmp_pass, device])
-        return False, f"ATA Secure Erase échoué : {err}"
+        return False, f"ATA Secure Erase failed: {err}"
 
     return True, ""
 
@@ -265,20 +261,17 @@ def _ata_secure_erase_linux(device: str, enhanced: bool = False) -> tuple[bool, 
 
 def _nvme_format_linux(device: str) -> tuple[bool, str]:
     """
-    Effectue un nvme format --ses=1 (Cryptographic Erase).
+    Executes nvme format --ses=1/2 (Cryptographic Erase).
     """
     if not _tool_ok("nvme"):
-        return False, "nvme-cli non disponible. Installer : apt install nvme-cli"
+        return False, "nvme-cli not available. Install via: apt install nvme-cli"
 
-    rprint(f"\n  [dim]Lancement NVMe Format (Cryptographic Erase --ses=1)...[/dim]")
-    # --ses=1 = User Data Erase, --ses=2 = Cryptographic Erase
-    # On utilise --ses=2 (Crypto) en priorité
+    rprint(f"\n  [dim]Triggering NVMe Format (Cryptographic Erase --ses=1/2)...[/dim]")
     rc, _, err = _run(["nvme", "format", device, "--ses=2", "--force"], timeout=600)
     if rc != 0:
-        # Fallback --ses=1
         rc, _, err = _run(["nvme", "format", device, "--ses=1", "--force"], timeout=600)
     if rc != 0:
-        return False, f"NVMe Format échoué : {err}"
+        return False, f"NVMe Format failed: {err}"
     return True, ""
 
 
@@ -288,12 +281,11 @@ def _nvme_format_linux(device: str) -> tuple[bool, str]:
 
 def _luks_erase_linux(luks_device: str) -> tuple[bool, str]:
     """
-    Détruit la clé maître LUKS via cryptsetup erase.
-    Compatible LUKS1 et LUKS2.
+    Destroys LUKS master keys via cryptsetup erase.
+    Compatible with LUKS1 and LUKS2.
     """
     if not _tool_ok("cryptsetup"):
-        # Fallback : écrasement du header LUKS (premiers 2 Mo) avec des zéros
-        rprint("  [yellow]cryptsetup absent — écrasement du header LUKS (2 MiB)...[/yellow]")
+        rprint("  [yellow]cryptsetup missing — overwriting LUKS header (2 MiB)...[/yellow]")
         try:
             with open(luks_device, "wb") as f:
                 f.write(b'\x00' * (2 * 1024 * 1024))
@@ -303,31 +295,28 @@ def _luks_erase_linux(luks_device: str) -> tuple[bool, str]:
         except Exception as e:
             return False, str(e)
 
-    rprint(f"\n  [dim]Destruction de la clé maître LUKS sur {luks_device}...[/dim]")
-    # cryptsetup erase détruit tous les key slots → données inaccessibles
+    rprint(f"\n  [dim]Destroying LUKS master key on {luks_device}...[/dim]")
     rc, _, err = _run(
         ["cryptsetup", "erase", "--batch-mode", luks_device],
         timeout=30,
     )
     if rc != 0:
-        return False, f"cryptsetup erase échoué : {err}"
+        return False, f"cryptsetup erase failed: {err}"
     return True, ""
 
 
 # ──────────────────────────────────────────────
-# Windows — effacement via diskpart + format
+# Windows — diskpart + format sanitization
 # ──────────────────────────────────────────────
 
 def _estimate_diskpart_duration(size_bytes: int, disk_type: str) -> int:
     """
-    Estime la durée de diskpart clean all en secondes
-    selon la taille et le type de disque.
+    Estimates diskpart clean all execution time in seconds.
     """
-    # Vitesses moyennes observées sur diskpart clean all
     speed = {
-        "ssd":  300 * 1024 * 1024,   # ~300 MB/s SSD SATA
-        "nvme": 400 * 1024 * 1024,   # ~400 MB/s NVMe
-        "hdd":  100 * 1024 * 1024,   # ~100 MB/s HDD
+        "ssd":  300 * 1024 * 1024,
+        "nvme": 400 * 1024 * 1024,
+        "hdd":  100 * 1024 * 1024,
     }.get(disk_type.lower(), 120 * 1024 * 1024)
 
     return max(60, int(size_bytes / speed))
@@ -335,15 +324,11 @@ def _estimate_diskpart_duration(size_bytes: int, disk_type: str) -> int:
 
 def _is_removable_disk(disk) -> bool:
     """
-    Détecte si le disque est connecté en USB/amovible.
-    Vérifie transport ET les lettres de lecteur (heuristique).
+    Detects if disk is USB/Removable.
     """
     transport = getattr(disk, "transport", "").lower()
     if transport in ("usb", "removable", "ieee1394"):
         return True
-    # Heuristique Windows : si BusType était 7 (USB) le transport vaut "usb"
-    # mais certains pilotes retournent "unknown" pour les docks USB-SATA
-    # On vérifie aussi si le device_id correspond à un bus USB via le modèle
     model = getattr(disk, "model", "").upper()
     if any(kw in model for kw in ("USB", "EXTERNAL", "PORTABLE", "FLASH DRIVE")):
         return True
@@ -352,13 +337,8 @@ def _is_removable_disk(disk) -> bool:
 
 def _dismount_volumes_windows(kernel32, drive_letters: list) -> tuple[list, list]:
     """
-    Verrouille et démonte les volumes du disque CIBLE avant écriture.
-    UNIQUEMENT les lettres appartenant au disque physique sélectionné.
-    Les autres disques et leurs lettres ne sont JAMAIS touchés.
-
-    Retourne (vol_handles, failed_letters) :
-    - vol_handles    : handles à fermer après écriture
-    - failed_letters : lettres non verrouillables (fichiers ouverts dessus)
+    Locks and dismounts TARGET disk volumes prior to write.
+    ONLY letters belonging to selected physical disk are affected.
     """
     import ctypes
     GENERIC_READ      = 0x80000000
@@ -387,7 +367,6 @@ def _dismount_volumes_windows(kernel32, drive_letters: list) -> tuple[list, list
             failed_letters.append(letter)
             continue
 
-        # Verrouillage exclusif — échoue si des fichiers sont ouverts
         lock_ok = kernel32.DeviceIoControl(
             h, FSCTL_LOCK_VOLUME, None, 0, None, 0, None, None
         )
@@ -396,7 +375,6 @@ def _dismount_volumes_windows(kernel32, drive_letters: list) -> tuple[list, list
             failed_letters.append(letter)
             continue
 
-        # Démontage du système de fichiers (flush cache inclus)
         kernel32.DeviceIoControl(h, FSCTL_DISMOUNT_VOLUME, None, 0, None, 0, None, None)
         vol_handles.append(h)
 
@@ -413,10 +391,7 @@ def _write_pass_windows(
     drive_letters: list = None,
 ) -> tuple[bool, int, str]:
     """
-    Ecriture directe sur PhysicalDriveX via ctypes CreateFile (Windows API).
-    Démonte les volumes du disque cible avant écriture.
-    Les autres disques/volumes ne sont pas affectés.
-    Sur Linux, délègue à _write_pass_linux.
+    Direct raw disk writing via CreateFile (Windows Win32 API).
     """
     if sys.platform != "win32":
         return _write_pass_linux(device, disk_size, pass_num, total_passes, use_random, progress_cb)
@@ -445,7 +420,6 @@ def _write_pass_windows(
 
     kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
 
-    # Ouvre le disque physique
     handle = kernel32.CreateFileW(
         device,
         GENERIC_READ | GENERIC_WRITE,
@@ -457,19 +431,16 @@ def _write_pass_windows(
     if handle == INVALID_HANDLE:
         err_code = ctypes.get_last_error()
         msgs = {
-            5:   "Acces refuse - lancez PowerShell en tant qu'Administrateur.",
-            32:  "Disque utilise par un autre processus.",
-            87:  "Parametre invalide - verifiez le numero du disque.",
-            1117:"Erreur materielle sur le disque.",
+            5:   "Access denied — launch PowerShell as Administrator.",
+            32:  "Disk currently locked by another process.",
+            87:  "Invalid parameter — verify disk number.",
+            1117:"Hardware I/O error on target drive.",
         }
-        return False, 0, msgs.get(err_code, f"CreateFile echoue (code Windows {err_code}).")
+        return False, 0, msgs.get(err_code, f"CreateFile failed (Windows error code {err_code}).")
 
-    # Démontage des volumes du disque CIBLE uniquement
     letters = drive_letters or []
     vol_handles, failed = _dismount_volumes_windows(kernel32, letters)
 
-    # Si des lettres n'ont pas pu être verrouillées, on avertit mais on continue
-    # (le démontage forcé via FSCTL_DISMOUNT_VOLUME suffit dans la plupart des cas)
     if failed:
         failed_str = ", ".join(failed)
         rprint(f"  [yellow]{t('wipe_vol_locked_fail', letters=failed_str)}[/yellow]")
@@ -495,7 +466,7 @@ def _write_pass_windows(
                         letters=", ".join(letters) if letters else device,
                     )
                 else:
-                    error = f"WriteFile echoue (code Windows {err_code})."
+                    error = f"WriteFile failed (Windows code {err_code})."
                 break
 
             written += to_write
@@ -519,8 +490,7 @@ def _diskpart_clean_windows_nist(
     disk_type: str = "hdd",
 ) -> tuple[bool, int, str]:
     """
-    NIST Purge sur disque Windows INTERNE via diskpart clean all.
-    Ne pas appeler sur disque amovible/USB — utiliser _is_removable_disk() avant.
+    NIST Purge on internal drive via diskpart clean all.
     """
     if str(disk_number).startswith("[MOCK]") or os.environ.get("SECUREWIPE_MOCK") == "1":
         return True, size_bytes, ""
@@ -547,7 +517,7 @@ def _diskpart_clean_windows_nist(
 
     console.print()
     console.print(f"  [dim]NIST Purge — Disk {disk_number} (diskpart clean all)[/dim]")
-    console.print(f"  [yellow]⚠  Durée estimée : ~{eta_str} — ne pas interrompre.[/yellow]")
+    console.print(f"  [yellow]⚠  Estimated duration: ~{eta_str} — do not interrupt.[/yellow]")
     console.print()
 
     result_box = {"rc": None, "out": "", "err": ""}
@@ -605,25 +575,23 @@ def _diskpart_clean_windows_nist(
 
     rc = result_box["rc"]
     if rc != 0:
-        return False, 0, f"diskpart échoué (code {rc}) : {result_box['err'] or result_box['out']}"
+        return False, 0, f"diskpart failed (code {rc}): {result_box['err'] or result_box['out']}"
     return True, size_bytes, ""
 
 
 def _bitlocker_off_windows(drive_letters: list) -> tuple[bool, str]:
     """
-    Désactive BitLocker sur chaque lettre de lecteur.
-    Attend la fin du déchiffrement.
+    Disables BitLocker on specified drives and awaits decryption.
     """
     if os.environ.get("SECUREWIPE_MOCK") == "1":
         return True, ""
 
     for letter in drive_letters:
-        rprint(f"  [dim]Désactivation BitLocker sur {letter}...[/dim]")
+        rprint(f"  [dim]Disabling BitLocker on {letter}...[/dim]")
         rc, _, err = _run(["manage-bde", "-off", letter], timeout=7200)
         if rc != 0:
-            return False, f"manage-bde -off {letter} échoué : {err}"
-        # Attend la fin
-        for _ in range(360):   # max 1h
+            return False, f"manage-bde -off {letter} failed: {err}"
+        for _ in range(360):
             time.sleep(10)
             rc2, out2, _ = _run(["manage-bde", "-status", letter], timeout=15)
             if "Fully Decrypted" in out2 or "Protection Off" in out2:
@@ -632,7 +600,7 @@ def _bitlocker_off_windows(drive_letters: list) -> tuple[bool, str]:
 
 
 # ──────────────────────────────────────────────
-# Vérification post-effacement
+# Post-Wipe Verification
 # ──────────────────────────────────────────────
 
 def _verify_wipe(
@@ -643,11 +611,8 @@ def _verify_wipe(
     gui_verify_cb=None,
 ) -> tuple[bool, str]:
     """
-    Lit un échantillon aléatoire de secteurs et vérifie qu'ils sont
-    bien effacés (zéros si expect_zeros, sinon tout sauf les données originales).
-    Pour 'aléatoire', on vérifie juste que c'est pas que des zéros partout
-    (signe que l'écriture a bien eu lieu).
-    Retourne (ok, detail_msg).
+    Reads a random sampling of disk sectors and verifies content integrity.
+    Returns (ok, detail_msg).
     """
     if device.startswith("[MOCK]") or os.environ.get("SECUREWIPE_MOCK") == "1":
         if gui_verify_cb:
@@ -655,10 +620,9 @@ def _verify_wipe(
         return True, t("verify_detail_zeros", n=10)
 
     sample_size = int(disk_size * verify_pct / 100)
-    sample_size = max(sample_size, BLOCK_SIZE)   # minimum 1 bloc
+    sample_size = max(sample_size, BLOCK_SIZE)
     num_blocks  = max(1, sample_size // BLOCK_SIZE)
 
-    # Positions aléatoires réparties sur le disque
     max_offset = max(0, disk_size - BLOCK_SIZE)
     population = list(range(0, max(BLOCK_SIZE, max_offset + 1), BLOCK_SIZE))
     k = min(num_blocks, len(population))
@@ -704,11 +668,7 @@ def _verify_wipe(
 
 
 # ──────────────────────────────────────────────
-# Windows — reformatage post-effacement
-# ──────────────────────────────────────────────
-
-# ──────────────────────────────────────────────
-# Orchestrateur principal
+# Main Orchestrator
 # ──────────────────────────────────────────────
 
 def run_wipe(
@@ -720,9 +680,7 @@ def run_wipe(
     gui_progress_cb: Optional[Callable] = None,
 ) -> WipeResult:
     """
-    Exécute l'effacement complet d'un disque.
-    gui_progress_cb(bytes_done, total_bytes, elapsed_sec) : callback GUI optionnel.
-    Si fourni, bypasse la barre Rich terminal pour envoyer la progression au GUI.
+    Executes full disk sanitization workflow.
     """
     is_linux   = sys.platform != "win32"
     is_windows = sys.platform == "win32"
@@ -738,15 +696,12 @@ def run_wipe(
 
     start_time = time.time()
 
-    # ── Affichage du démarrage ──
     console.print()
     rprint(f"  [bold cyan]{t('wipe_starting')}[/bold cyan]")
     console.print()
 
     try:
-        # ══════════════════════════════════════
         # CRYPTO ERASE
-        # ══════════════════════════════════════
         if mode == WipeMode.CRYPTO_ERASE and crypto_profile:
             cm = crypto_profile.recommended_method
 
@@ -780,7 +735,7 @@ def run_wipe(
                 result.standard      = "NIST Purge"
                 result.passes_done   = 1
             else:
-                ok, err = False, "Méthode crypto non reconnue."
+                ok, err = False, "Unrecognized crypto method."
 
             if ok:
                 result.status        = WipeStatus.SUCCESS
@@ -792,9 +747,7 @@ def run_wipe(
                 rprint(f"  {t('wipe_failed', error=err)}")
             return result
 
-        # ══════════════════════════════════════
-        # NIST PURGE — Firmware Secure Erase
-        # ══════════════════════════════════════
+        # NIST PURGE
         elif mode == WipeMode.NIST_PURGE:
             if is_linux:
                 if dtype == "nvme":
@@ -804,17 +757,16 @@ def run_wipe(
                     from core.crypto_detect import _analyse_sed_linux, SedStatus
                     status, enhanced, _ = _analyse_sed_linux(device)
                     if status == SedStatus.FROZEN:
-                        rprint("  [yellow]⚠ Disque frozen — tentative sans enhanced...[/yellow]")
+                        rprint("  [yellow]⚠ Disk frozen — attempting without enhanced...[/yellow]")
                     ok, err = _ata_secure_erase_linux(device, enhanced=(status != SedStatus.FROZEN and enhanced))
                     result.method_detail = "ATA Secure Erase"
                 else:
-                    ok, err = False, "Type de disque non supporté pour NIST Purge."
+                    ok, err = False, "Unsupported disk type for NIST Purge."
             else:
-                # Windows : NIST Purge via diskpart uniquement sur disques internes
                 if _is_removable_disk(disk):
                     ok  = False
                     err = t("nist_blocked_err")
-                    rprint(f"\n  [bold yellow]⚠ NIST Purge bloqué :[/bold yellow]")
+                    rprint(f"\n  [bold yellow]⚠ NIST Purge blocked:[/bold yellow]")
                     rprint(f"  [dim]{t('nist_blocked_err')}[/dim]")
                 else:
                     disk_num = getattr(disk, "device_id", "0")
@@ -834,34 +786,26 @@ def run_wipe(
                 rprint(f"  {t('wipe_failed', error=err)}")
             return result
 
-        # ══════════════════════════════════════
-        # OVERWRITE PASSES (ANSSI P1, P2, Custom)
-        # ══════════════════════════════════════
+        # OVERWRITE PASSES
         else:
-            # Détermine les passes
             if mode == WipeMode.ANSSI_P1:
-                passes      = [False]   # 1 passe zéros
+                passes      = [False]
                 result.standard = "ANSSI Palier 1"
-                result.method_detail = "1 passe (zéros)"
+                result.method_detail = "1 pass (zeros)"
             elif mode == WipeMode.ANSSI_P2:
-                passes      = [True]    # 1 passe aléatoire
+                passes      = [True]
                 result.standard = "ANSSI Palier 2 / NIST Clear"
-                result.method_detail = "1 passe (aléatoire)"
-            else:  # CUSTOM
-                # Alternance zéros/aléatoire
+                result.method_detail = "1 pass (random)"
+            else:
                 passes = [i % 2 == 1 for i in range(custom_passes)]
                 result.standard = f"Custom ({custom_passes} passes)"
-                result.method_detail = f"{custom_passes} passes (alternance zéros/aléatoire)"
+                result.method_detail = f"{custom_passes} passes (alternating zeros/random)"
 
             total_bytes   = size_bytes * len(passes)
             total_written = 0
-
-            # Compteur cumulatif pour le callback GUI
-            # Utilise une liste pour être modifiable dans la closure
             _gui_written = [0]
 
             def _make_gui_cb():
-                """Callback GUI : accumule les octets écrits à travers toutes les passes."""
                 def cb(n):
                     _gui_written[0] += n
                     gui_progress_cb(
@@ -871,7 +815,6 @@ def run_wipe(
                 return cb
 
             if gui_progress_cb:
-                # Mode GUI : progression via callback cumulatif
                 for i, use_random in enumerate(passes, 1):
                     cb = _make_gui_cb()
                     letters = getattr(disk, "drive_letters", []) or getattr(disk, "mountpoints", [])
@@ -891,7 +834,6 @@ def run_wipe(
                         result.duration_sec  = time.time() - start_time
                         return result
             else:
-                # Mode CLI : Rich progress bar
                 with _make_progress() as progress:
                     task = progress.add_task(t("wipe_progress_label"), total=total_bytes)
 
@@ -923,8 +865,7 @@ def run_wipe(
 
             rprint(f"  {t('wipe_success')}")
 
-            # ── Vérification ──
-            # Active sur Linux ET Windows (écriture directe = lecture possible)
+            # Verification
             if verify_pct > 0 and size_bytes > 0:
                 console.print()
                 rprint(f"  [dim]{t('wipe_verify_label')} ({verify_pct}%)...[/dim]")
@@ -933,8 +874,6 @@ def run_wipe(
                                (mode == WipeMode.CUSTOM and not passes[-1])
 
                 if gui_progress_cb:
-                    # Adapte le callback vérif : (done_blk, total_blk) → gui_progress_cb(done, total, elapsed)
-                    # On réutilise l'interface existing en passant done=blk, total=total_blk, elapsed=0
                     def _verif_adapter(done_blk, total_blk):
                         gui_progress_cb(done_blk, total_blk, 0)
                     ok_v, detail = _verify_wipe(
@@ -959,12 +898,12 @@ def run_wipe(
                     result.status = WipeStatus.VERIFY_FAILED
             else:
                 result.status     = WipeStatus.SUCCESS
-                result.verify_ok  = None   # Pas de vérification
+                result.verify_ok  = None
 
     except KeyboardInterrupt:
         result.status    = WipeStatus.ABORTED
-        result.error_msg = "Interrompu par l'utilisateur."
-        rprint("\n  [yellow]⚠ Opération interrompue.[/yellow]")
+        result.error_msg = "Aborted by user."
+        rprint("\n  [yellow]⚠ Operation aborted.[/yellow]")
     except Exception as e:
         result.status    = WipeStatus.FAILED
         result.error_msg = str(e)
@@ -995,13 +934,12 @@ def run_wipe(
 
 
 # ──────────────────────────────────────────────
-# Menu de sélection du mode (appelé par ui.py)
+# Mode Selection Menu
 # ──────────────────────────────────────────────
 
 def select_wipe_mode(disk, crypto_profile: CryptoProfile) -> tuple[WipeMode, int, int, str]:
     """
-    Affiche le menu de sélection du mode d'effacement.
-    Retourne (mode, custom_passes, verify_pct, mode_label).
+    Displays sanitization mode selection menu.
     """
     from core.ui import print_section, numbered_menu
     from rich import print as rprint
@@ -1011,7 +949,6 @@ def select_wipe_mode(disk, crypto_profile: CryptoProfile) -> tuple[WipeMode, int
 
     print_section(t("wipe_mode_title"))
 
-    # Avertissement disque amovible
     is_removable = _is_removable_disk(disk)
     if is_removable:
         console.print()
@@ -1020,18 +957,15 @@ def select_wipe_mode(disk, crypto_profile: CryptoProfile) -> tuple[WipeMode, int
         rprint(f"  [dim]{t('removable_nist_msg2')}[/dim]")
         console.print()
 
-    # Info SSD/NVMe
     if is_flash:
         rprint(f"  {t('wipe_mode_ssd_info')}")
         console.print()
 
-    # Info crypto disponible
     if crypto_profile.has_crypto_option:
         enc = disk.encryption.upper()
         rprint(f"  {t('wipe_mode_crypto_info', enc=enc)}")
         console.print()
 
-    # Construction du menu selon le type de disque
     options = []
     mode_map = {}
 
@@ -1056,7 +990,7 @@ def select_wipe_mode(disk, crypto_profile: CryptoProfile) -> tuple[WipeMode, int
             f"[dim]{t('wipe_m3_name')} — {t('nist_unavailable')}[/dim]",
             f"[dim]{t('nist_unavailable_desc')}[/dim]"
         ))
-        mode_map[len(options)] = None  # Choix désactivé
+        mode_map[len(options)] = None
 
     if not is_flash:
         options.append((t("wipe_m5_name"), f"{t('wipe_m5_desc')} [{t('wipe_m5_compat')}]"))
@@ -1064,7 +998,7 @@ def select_wipe_mode(disk, crypto_profile: CryptoProfile) -> tuple[WipeMode, int
 
     from core.ui import numbered_menu
     while True:
-        idx = numbered_menu("", options, default=1)  # titre deja affiche par print_section
+        idx = numbered_menu("", options, default=1)
         chosen_num = idx + 1
         mode = mode_map[chosen_num]
         if mode is None:
@@ -1074,7 +1008,6 @@ def select_wipe_mode(disk, crypto_profile: CryptoProfile) -> tuple[WipeMode, int
             continue
         break
 
-    # Passes custom
     custom_passes = 3
     if mode == WipeMode.CUSTOM:
         rprint(f"\n  {t('wipe_m5_warn')}")
@@ -1091,7 +1024,6 @@ def select_wipe_mode(disk, crypto_profile: CryptoProfile) -> tuple[WipeMode, int
                 pass
             rprint(f"  {t('wipe_m5_passes_invalid')}")
 
-    # Niveau de vérification
     verify_pct = 10
     if mode not in (WipeMode.CRYPTO_ERASE, WipeMode.NIST_PURGE):
         from rich.prompt import Prompt
@@ -1101,7 +1033,7 @@ def select_wipe_mode(disk, crypto_profile: CryptoProfile) -> tuple[WipeMode, int
             (t("verify_opt2"), ""),
         ]
         v_idx = numbered_menu(t("verify_title"), v_options, default=1)
-        if v_idx == 1:  # Custom
+        if v_idx == 1:
             while True:
                 raw = Prompt.ask(f"  {t('verify_custom_prompt')}", default="10").strip()
                 try:
@@ -1115,3 +1047,4 @@ def select_wipe_mode(disk, crypto_profile: CryptoProfile) -> tuple[WipeMode, int
 
     mode_label = options[idx][0]
     return mode, custom_passes, verify_pct, mode_label
+

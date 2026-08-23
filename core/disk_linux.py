@@ -97,15 +97,15 @@ def _tool_available(name: str) -> bool:
 def _lsblk_json() -> list[dict]:
     """
     Lance lsblk en JSON et retourne la liste des blockdevices.
-    Gère les deux formats (ancien lsblk sans --json).
+    Handles both formats (older lsblk without --json).
     """
     rc, out, err = _run([
-        "lsblk", "-J", "-b",   # -b = taille en octets
+        "lsblk", "-J", "-b",   # -b = size in bytes
         "-o", "NAME,TYPE,SIZE,MODEL,SERIAL,ROTA,TRAN,MOUNTPOINTS,FSTYPE,VENDOR,FIRMWARE",
     ])
 
     if rc != 0 or not out:
-        # Fallback : pas de JSON, on parse la sortie texte
+        # Fallback: non-JSON output, parse text format
         return _lsblk_fallback()
 
     try:
@@ -117,8 +117,8 @@ def _lsblk_json() -> list[dict]:
 
 def _lsblk_fallback() -> list[dict]:
     """
-    Fallback si lsblk -J ne fonctionne pas.
-    Parse /proc/partitions et /sys/block pour reconstruire la liste.
+    Fallback if lsblk -J is unsupported.
+    Parses /proc/partitions and /sys/block to build device list.
     """
     devices = []
     sys_block = Path("/sys/block")
@@ -128,7 +128,7 @@ def _lsblk_fallback() -> list[dict]:
 
     for dev_path in sorted(sys_block.iterdir()):
         name = dev_path.name
-        # On ne garde que les disques (pas les partitions, loop, ram...)
+        # Keep physical disks only (exclude partitions, loop, ram, etc.)
         if not re.match(r'^(sd[a-z]+|hd[a-z]+|nvme\d+n\d+|vd[a-z]+|xvd[a-z]+)$', name):
             continue
 
@@ -144,7 +144,7 @@ def _lsblk_fallback() -> list[dict]:
             "mountpoints": [],
             "children": [],
         }
-        # Taille : /sys/block/sdX/size est en secteurs de 512 octets
+        # Size: /sys/block/sdX/size is in 512-byte sectors
         try:
             sectors = int(dev["size"])
             dev["size"] = sectors * 512
@@ -174,11 +174,11 @@ def _guess_transport(name: str) -> str:
 
 
 # ──────────────────────────────────────────────
-# Conversion taille
+# Size Conversion
 # ──────────────────────────────────────────────
 
 def _bytes_to_human(n: int) -> str:
-    """Convertit des octets en chaîne lisible (GiB / TiB)."""
+    """Converts bytes to human readable string (GiB / TiB)."""
     if n <= 0:
         return "? GiB"
     for unit in ("B", "KiB", "MiB", "GiB", "TiB"):
@@ -190,8 +190,8 @@ def _bytes_to_human(n: int) -> str:
 
 def _parse_size(raw) -> int:
     """
-    Convertit la taille retournée par lsblk en entier (octets).
-    Avec -b c'est déjà un entier. Sans -b c'est '500G', '2T', etc.
+    Converts lsblk size output to integer bytes.
+    With -b it is already an integer.
     """
     if isinstance(raw, int):
         return raw
@@ -213,11 +213,11 @@ def _parse_size(raw) -> int:
 
 
 # ──────────────────────────────────────────────
-# Détection type disque
+# Disk Type Detection
 # ──────────────────────────────────────────────
 
 def _detect_disk_type(dev: dict) -> str:
-    """Détermine HDD / SSD / NVMe à partir des infos lsblk."""
+    """Determines HDD / SSD / NVMe from lsblk metadata."""
     tran = (dev.get("tran") or "").lower()
     rota = dev.get("rota")
     name = dev.get("name", "")
@@ -225,12 +225,11 @@ def _detect_disk_type(dev: dict) -> str:
     if tran == "nvme" or name.startswith("nvme"):
         return DISK_TYPE_NVME
 
-    # rota = True  → disque à plateaux (HDD)
-    # rota = False → flash (SSD)
+    # rota = True  → rotational drive (HDD)
+    # rota = False → solid state drive (SSD)
     if isinstance(rota, bool):
         return DISK_TYPE_HDD if rota else DISK_TYPE_SSD
 
-    # Certains lsblk retournent "1"/"0" en string
     if str(rota) == "1":
         return DISK_TYPE_HDD
     if str(rota) == "0":
@@ -240,7 +239,7 @@ def _detect_disk_type(dev: dict) -> str:
 
 
 # ──────────────────────────────────────────────
-# Détection disque système
+# System Disk Detection
 # ──────────────────────────────────────────────
 
 SYSTEM_MOUNTPOINTS = {"/", "/boot", "/boot/efi", "/usr", "[SWAP]", "swap"}
@@ -248,8 +247,7 @@ SYSTEM_MOUNTPOINTS = {"/", "/boot", "/boot/efi", "/usr", "[SWAP]", "swap"}
 
 def _is_system_disk(dev: dict) -> bool:
     """
-    Retourne True si le disque (ou une de ses partitions)
-    est monté sur un point critique du système.
+    Returns True if disk or any child partition is mounted on critical system paths.
     """
     def _check_mounts(node: dict) -> bool:
         mounts = node.get("mountpoints") or node.get("mountpoint") or []
@@ -267,23 +265,23 @@ def _is_system_disk(dev: dict) -> bool:
 
 
 # ──────────────────────────────────────────────
-# Détection chiffrement
+# Encryption Detection
 # ──────────────────────────────────────────────
 
 def _detect_encryption(dev: dict, device_path: str) -> str:
     """
-    Détecte le type de chiffrement présent sur le disque.
-    Priorité : LUKS > SED (hdparm) > BitLocker > aucun
+    Detects encryption type present on disk.
+    Priority: LUKS > SED (hdparm) > BitLocker > None
     """
-    # 1. LUKS — via fstype sur les partitions enfants ou le disque entier
+    # 1. LUKS
     if _has_luks_child(dev):
         return ENC_LUKS
 
-    # 2. SED — via hdparm -I (cherche "Security:" et "enabled")
+    # 2. SED
     if _is_sed(device_path):
         return ENC_SED
 
-    # 3. BitLocker — fstype = BitLocker (rare sous Linux, dual-boot)
+    # 3. BitLocker
     if _has_bitlocker_child(dev):
         return ENC_BITLOCKER
 
@@ -291,7 +289,7 @@ def _detect_encryption(dev: dict, device_path: str) -> str:
 
 
 def _has_luks_child(dev: dict) -> bool:
-    """Vérifie si le disque ou ses partitions ont fstype=crypto_LUKS."""
+    """Checks if drive or child partitions have fstype=crypto_LUKS."""
     fstype = (dev.get("fstype") or "").lower()
     if "luks" in fstype:
         return True
@@ -302,7 +300,7 @@ def _has_luks_child(dev: dict) -> bool:
 
 
 def _has_bitlocker_child(dev: dict) -> bool:
-    """Vérifie si une partition a fstype contenant 'bitlocker'."""
+    """Checks if partition fstype contains bitlocker."""
     fstype = (dev.get("fstype") or "").lower()
     if "bitlocker" in fstype:
         return True
@@ -314,15 +312,13 @@ def _has_bitlocker_child(dev: dict) -> bool:
 
 def _is_sed(device_path: str) -> bool:
     """
-    Vérifie si le disque est un Self-Encrypting Drive via hdparm -I.
-    Cherche la ligne 'Security:' avec 'enabled' dans la sortie.
+    Checks if drive is Self-Encrypting Drive via hdparm -I.
     """
     if not _tool_available("hdparm"):
         return False
     rc, out, _ = _run(["hdparm", "-I", device_path], timeout=5)
     if rc != 0:
         return False
-    # hdparm signale un SED dans la section "Security:"
     in_security = False
     for line in out.splitlines():
         if "Security:" in line:
@@ -336,7 +332,7 @@ def _is_sed(device_path: str) -> bool:
 
 def detect_hpa(device_path: str) -> bool:
     """
-    Détecte l'existence d'une Host Protected Area (HPA / DCO) via hdparm -N.
+    Detects Host Protected Area (HPA / DCO) via hdparm -N.
     """
     if device_path.startswith("[MOCK]") or os.environ.get("SECUREWIPE_MOCK") == "1":
         return "sdb" in device_path or "ZFN0ABCD" in device_path
@@ -361,19 +357,18 @@ def detect_hpa(device_path: str) -> bool:
 
 
 # ──────────────────────────────────────────────
-# Enrichissement via smartctl
+# SMART Data Enrichment
 # ──────────────────────────────────────────────
 
 def _enrich_with_smartctl(disk: DiskInfo) -> None:
     """
-    Complète les infos manquantes (S/N, firmware, vendor) via smartctl.
-    Modifie disk en place. Ne bloque pas si smartctl est absent.
+    Populates missing drive details via smartctl.
     """
     if not _tool_available("smartctl"):
         return
 
     rc, out, _ = _run(["smartctl", "-i", "--json", disk.device], timeout=8)
-    if rc not in (0, 64):   # 64 = some SMART errors but output valid
+    if rc not in (0, 64):
         return
 
     try:
@@ -400,11 +395,11 @@ def _enrich_with_smartctl(disk: DiskInfo) -> None:
 
 
 # ──────────────────────────────────────────────
-# Collecte des mountpoints actifs
+# Active Mountpoints Collector
 # ──────────────────────────────────────────────
 
 def _collect_mountpoints(dev: dict) -> list[str]:
-    """Collecte tous les points de montage d'un disque et ses partitions."""
+    """Collects active mount points for disk and child partitions."""
     mps = []
 
     def _recurse(node: dict):
@@ -422,27 +417,23 @@ def _collect_mountpoints(dev: dict) -> list[str]:
 
 
 # ──────────────────────────────────────────────
-# Fonction principale : list_disks()
+# Main Function: list_disks()
 # ──────────────────────────────────────────────
 
 def list_disks() -> list[DiskInfo]:
     """
-    Détecte tous les disques physiques disponibles sous Linux.
-    Retourne une liste de DiskInfo, triée par device.
-
-    Variable d'environnement SECUREWIPE_DEV=/chemin/vers/fichier :
-    Injecte un fichier comme faux disque pour les tests (ex: fichier dd).
+    Detects physical drives under Linux.
+    Returns sorted list of DiskInfo instances.
     """
     import os as _os
 
-    # Mode test : SECUREWIPE_DEV=/tmp/testdisk.img
     test_dev = _os.environ.get("SECUREWIPE_DEV", "").strip()
     if test_dev and _os.path.exists(test_dev):
         size = _os.path.getsize(test_dev)
         fake = DiskInfo(
             device    = test_dev,
             name      = _os.path.basename(test_dev),
-            model     = f"[TEST] Fichier image",
+            model     = f"[TEST] Image File",
             serial    = "TEST-0001",
             disk_type = DISK_TYPE_HDD,
             size_bytes= size,
@@ -460,7 +451,6 @@ def list_disks() -> list[DiskInfo]:
     disks = []
 
     for dev in raw_devices:
-        # On ne traite que les disques physiques (type=disk)
         if dev.get("type") != "disk":
             continue
 
@@ -471,7 +461,6 @@ def list_disks() -> list[DiskInfo]:
         device_path = f"/dev/{name}"
         size_bytes = _parse_size(dev.get("size", 0))
 
-        # Modèle et S/N — nettoyage des valeurs vides/None
         model  = (dev.get("model") or "").strip() or "Unknown"
         serial = (dev.get("serial") or "").strip() or "N/A"
         vendor = (dev.get("vendor") or "").strip()
@@ -493,7 +482,6 @@ def list_disks() -> list[DiskInfo]:
             raw_lsblk    = dev,
         )
 
-        # Enrichissement optionnel via smartctl
         _enrich_with_smartctl(disk)
 
         disks.append(disk)
@@ -503,16 +491,15 @@ def list_disks() -> list[DiskInfo]:
 
 
 # ──────────────────────────────────────────────
-# Vérification des outils requis
+# Check Required Dependencies
 # ──────────────────────────────────────────────
 
 def check_linux_tools() -> dict[str, bool]:
     """
-    Vérifie la disponibilité des outils nécessaires.
-    Retourne un dict {outil: disponible}.
+    Checks availability of required Linux system tools.
     """
     tools = {
-        "lsblk"   : True,   # Toujours présent
+        "lsblk"   : True,
         "hdparm"  : _tool_available("hdparm"),
         "nvme"    : _tool_available("nvme"),
         "smartctl": _tool_available("smartctl"),
@@ -523,13 +510,12 @@ def check_linux_tools() -> dict[str, bool]:
 
 
 # ──────────────────────────────────────────────
-# Mock pour tests sans vrai matériel
+# Mock Data for Sandboxed Testing
 # ──────────────────────────────────────────────
 
 def _mock_disks() -> list[DiskInfo]:
     """
-    Génère des disques fictifs pour les tests en environnement sandboxé.
-    N'est jamais appelé en production.
+    Generates mock disks for testing environments.
     """
     return [
         DiskInfo(
@@ -560,3 +546,4 @@ def _mock_disks() -> list[DiskInfo]:
             smart_available=False, mountpoints=[],
         ),
     ]
+

@@ -1,4 +1,4 @@
-"""SecureWipe GUI — Step 3 : Méthode d'effacement"""
+"""SecureWipe GUI — Step 3: Sanitization Method Selection"""
 import customtkinter as ctk
 from gui.theme import *
 from core.i18n import t
@@ -44,7 +44,7 @@ class Step3Method(ctk.CTkFrame):
         has_crypto   = getattr(self._profile,"has_crypto_option",False) if self._profile else False
 
         if is_removable:
-            ctk.CTkLabel(self, text=f"⚠  {t('removable_warning')} — NIST Purge indisponible",
+            ctk.CTkLabel(self, text=f"⚠  {t('removable_warning')} — NIST Purge unavailable",
                 font=FONT_SMALL, text_color=YELLOW_WARN).pack(pady=(0,4))
 
         scroll = ctk.CTkScrollableFrame(self, fg_color="transparent",
@@ -56,11 +56,10 @@ class Step3Method(ctk.CTkFrame):
         self._cards = {}
 
         for key, name_k, desc_k, compat_k, compatible_types, needs_crypto in MODES:
-            # Disponibilité
             ok = dtype in compatible_types
             if needs_crypto and not has_crypto: ok = False
             if key == "purge" and is_removable: ok = False
-            if not needs_crypto and key == "crypto": continue  # Masque si pas de chiffrement
+            if not needs_crypto and key == "crypto": continue
 
             card = ctk.CTkFrame(scroll, fg_color=BG_CARD if ok else BG_INPUT,
                 corner_radius=RADIUS, border_width=1,
@@ -89,7 +88,7 @@ class Step3Method(ctk.CTkFrame):
 
             if ok:
                 def _bind_card(widget, k=key, r=rb):
-                    """Bind le clic sur le card ET tous ses enfants."""
+                    """Binds click event to card frame and child elements."""
                     widget.bind("<Button-1>", lambda e, _k=k, _r=r: (
                         self._radio_var.set(_k),
                         self._on_select(_k),
@@ -100,7 +99,7 @@ class Step3Method(ctk.CTkFrame):
 
             self._cards[key] = card
 
-        # ── Custom passes ──
+        # Custom passes frame
         self._custom_frame = ctk.CTkFrame(scroll, fg_color=BG_CARD,
             corner_radius=RADIUS, border_width=1, border_color=BORDER)
         ctk.CTkLabel(self._custom_frame, text=t("wipe_m5_passes"),
@@ -115,9 +114,7 @@ class Step3Method(ctk.CTkFrame):
         self._passes_var.trace_add("write", lambda *_:
             self._passes_lbl.configure(text=f"{self._passes_var.get()} passes"))
 
-        # ── Fin du scroll ──
-
-        # ── Vérification (hors scroll — toujours visible) ──
+        # Verification section
         sep = ctk.CTkFrame(self, height=1, fg_color=BORDER)
         sep.pack(fill="x", padx=24, pady=(4,0))
 
@@ -143,7 +140,6 @@ class Step3Method(ctk.CTkFrame):
     def _on_select(self, key):
         self._selected_key = key
         self._err_lbl.configure(text="")
-        # Affiche/masque custom passes
         if key == "custom":
             self._custom_frame.pack(fill="x", pady=4, after=self._cards["custom"])
         else:
@@ -152,7 +148,7 @@ class Step3Method(ctk.CTkFrame):
 
     def validate(self):
         if not self._selected_key:
-            self._err_lbl.configure(text="Sélectionnez une méthode.")
+            self._err_lbl.configure(text="Please select a sanitization method.")
             return False
         return True
 
@@ -165,3 +161,4 @@ class Step3Method(ctk.CTkFrame):
             "custom_passes": self._passes_var.get(),
             "verify_pct":    self._verify_var.get(),
         }
+

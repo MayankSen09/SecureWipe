@@ -358,5 +358,17 @@
     "block_hash": "ab8efeda8b20a31aa2a8559c154f4909c2653cd7b9e2468b4305d071177ba0aa",
     "cert_pdf_hash": "092bfcd367164a52b7f5b7257f13a6719826f2a37979557e71abb602cb5cda52",
     "index": 29
+  },
+  {
+    "timestamp": 1787496989.751121,
+    "meta_hash": "bab9e5c244b0261eeb95a23947ba76d092f1111863a70dac36b5c78e7491279d",
+    "prev_hash": "ab8efeda8b20a31aa2a8559c154f4909c2653cd7b9e2468b4305d071177ba0aa",
+    "device": "/dev/nvme0n1",
+    "serial": "SN-TEST-12345",
+    "method": "NIST SP 800-88 Purge",
+    "confidence_score": 100,
+    "block_hash": "22bf6018f701987328669fe1c2c9875297eb7e53ea11a98ae16751fa291bbe59",
+    "cert_pdf_hash": "4b06e257a28f2a2bbd083024d649b42bff6934cef2db565ab0b95e68962050d1",
+    "index": 30
   }
 ]

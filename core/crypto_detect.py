@@ -48,32 +48,33 @@ class CryptoProfile:
     Passed to wipe_engine for method execution.
     """
 
-    # Y a-t-il une option de crypto erase disponible ?
+    # Is crypto erase option available?
     has_crypto_option: bool = False
 
-    # Méthode recommandée
+    # Recommended method
     recommended_method: CryptoMethod = CryptoMethod.NONE
 
-    # Détails LUKS
-    luks_version: str = ""          # "LUKS1" ou "LUKS2"
-    luks_device: str = ""           # ex: /dev/sda1 (partition LUKS)
-    luks_cipher: str = ""           # ex: aes-xts-plain64
+    # LUKS Details
+    luks_version: str = ""          # "LUKS1" or "LUKS2"
+    luks_device: str = ""           # e.g.: /dev/sda1 (LUKS partition)
+    luks_cipher: str = ""           # e.g.: aes-xts-plain64
 
-    # Détails SED
-    sed_frozen: bool = False        # True → Secure Erase impossible sans reboot
-    sed_enhanced: bool = False      # True → Enhanced Secure Erase disponible
-    sed_time_min: int = 2           # Durée estimée en minutes
+    # SED Details
+    sed_frozen: bool = False        # True → Secure Erase impossible without reboot
+    sed_enhanced: bool = False      # True → Enhanced Secure Erase available
+    sed_time_min: int = 2           # Estimated duration in minutes
 
-    # Détails BitLocker
-    bitlocker_drives: list = field(default_factory=list)  # ex: ["C:"]
-    bitlocker_pct: int = 0          # % chiffré
+    # BitLocker Details
+    bitlocker_drives: list = field(default_factory=list)  # e.g.: ["C:"]
+    bitlocker_pct: int = 0          # % encrypted
 
-    # Avertissements à afficher à l'utilisateur
+    # Warnings for the user
     warnings: list = field(default_factory=list)
 
-    # Infos affichage
-    display_name: str = ""          # Nom court pour le menu
-    display_desc: str = ""          # Description pour le menu
+    # Display Information
+    display_name: str = ""          # Short menu label
+    display_desc: str = ""          # Menu description
+
 
 
 # ──────────────────────────────────────────────

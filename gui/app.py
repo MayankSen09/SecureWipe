@@ -1,6 +1,6 @@
 """
 SecureWipe GUI — app.py
-Fenêtre principale avec header fixe + stepper + contenu par étapes.
+Main application window with fixed header, stepper, and step-by-step navigation.
 """
 import sys, os
 from pathlib import Path
@@ -13,28 +13,28 @@ from gui.steps.step2_disk     import Step2Disk
 from gui.steps.step3_method   import Step3Method
 from gui.steps.step4_wipe     import Step4Wipe
 
-# Config CustomTkinter
+# CustomTkinter Configuration
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
 SCRIPT_DIR = Path(__file__).resolve().parent.parent
 
 class SecureWipeApp(ctk.CTk):
-    def __init__(self, lang="fr"):
+    def __init__(self, lang="en"):
         super().__init__()
 
-        # i18n
+        # i18n initialization
         from core import i18n as i18n_mod
         i18n_mod._translations = i18n_mod._load(lang)
         self._lang = lang
 
-        # Fenêtre
+        # Window setup
         self.title("SecureWipe v2.0.0")
         self.geometry(f"{WIN_W}x{WIN_H}")
         self.minsize(WIN_MIN_W, WIN_MIN_H)
         self.configure(fg_color=BG_DARK)
 
-        # Icône
+        # Icon setup
         icon_path = SCRIPT_DIR / "cert" / "template" / "logo.png"
         if icon_path.exists():
             try:
@@ -44,7 +44,7 @@ class SecureWipeApp(ctk.CTk):
                 pass
 
         self._step      = 0
-        self._step_done = 0   # Nombre d'étapes validées
+        self._step_done = 0   # Number of completed steps
         self._operator  = None
         self._disk      = None
         self._config    = None
@@ -54,11 +54,11 @@ class SecureWipeApp(ctk.CTk):
         self._show_step(0)
 
     # ──────────────────────────────────────────────
-    # Layout principal
+    # Main Layout
     # ──────────────────────────────────────────────
 
     def _build_layout(self):
-        # ── Header fixe ──
+        # Fixed Header
         self._header = ctk.CTkFrame(self, height=HEADER_H,
             fg_color=BG_CARD, corner_radius=0,
             border_width=0)
@@ -66,21 +66,20 @@ class SecureWipeApp(ctk.CTk):
         self._header.pack_propagate(False)
         self._build_header()
 
-        # ── Séparateur ──
+        # Separator
         ctk.CTkFrame(self, height=1, fg_color=BORDER).pack(fill="x")
 
-        # ── Stepper ──
+        # Stepper Navigation
         self._stepper_frame = ctk.CTkFrame(self, height=STEPPER_H,
             fg_color=BG_DARK, corner_radius=0)
         self._stepper_frame.pack(fill="x")
         self._stepper_frame.pack_propagate(False)
         self._build_stepper()
 
-        # ── Séparateur ──
+        # Separator
         ctk.CTkFrame(self, height=1, fg_color=BORDER).pack(fill="x")
 
-        # ── Footer (packé AVANT le contenu — règle obligatoire de Tkinter pack) ──
-        # Si le footer est packé après expand=True, il se fait écraser
+        # Footer
         ctk.CTkFrame(self, height=1, fg_color=BORDER).pack(fill="x", side="bottom")
         self._footer = ctk.CTkFrame(self, height=FOOTER_H,
             fg_color=BG_CARD, corner_radius=0)
@@ -88,7 +87,7 @@ class SecureWipeApp(ctk.CTk):
         self._footer.pack_propagate(False)
         self._build_footer()
 
-        # ── Zone contenu (packée EN DERNIER avec expand=True) ──
+        # Main Content Frame
         self._content = ctk.CTkFrame(self, fg_color=BG_DARK, corner_radius=0)
         self._content.pack(fill="both", expand=True)
 
@@ -104,7 +103,7 @@ class SecureWipeApp(ctk.CTk):
             except Exception:
                 pass
 
-        # Titre
+        # Title
         title_frame = ctk.CTkFrame(self._header, fg_color="transparent")
         title_frame.pack(side="left", padx=4)
         ctk.CTkLabel(title_frame, text="SecureWipe",
@@ -112,12 +111,12 @@ class SecureWipeApp(ctk.CTk):
         ctk.CTkLabel(title_frame, text="ANSSI · NIST SP 800-88 Rev.2 · GPL v3",
             font=FONT_SMALL, text_color=TEXT_DIM).pack(anchor="w")
 
-        # Langue
+        # Language selector
         lang_frame = ctk.CTkFrame(self._header, fg_color="transparent")
         lang_frame.pack(side="right", padx=16)
-        self._lang_var = ctk.StringVar(value="FR" if self._lang=="fr" else "EN")
+        self._lang_var = ctk.StringVar(value="EN" if self._lang=="en" else "FR")
         ctk.CTkSegmentedButton(lang_frame,
-            values=["FR","EN"],
+            values=["EN","FR"],
             variable=self._lang_var,
             command=self._switch_lang,
             fg_color=BG_INPUT,
@@ -132,7 +131,6 @@ class SecureWipeApp(ctk.CTk):
 
     def _build_stepper(self):
         from core.i18n import t
-        from core.i18n import t
         steps = [
             f"1. {t('step1_label')}",
             f"2. {t('step2_label')}",
@@ -144,7 +142,6 @@ class SecureWipeApp(ctk.CTk):
         container.pack(expand=True)
 
         for i, label in enumerate(steps):
-            # Numéro
             step_done = getattr(self, "_step_done", self._step)
             num_color = (STEP_ACTIVE if i == self._step and step_done < 4
                          else GREEN_OK if i < max(self._step, step_done)
@@ -163,7 +160,6 @@ class SecureWipeApp(ctk.CTk):
             lbl.pack(side="left", padx=(0,8))
             self._step_labels.append((circle, lbl))
 
-            # Connecteur
             if i < len(steps)-1:
                 ctk.CTkFrame(container, width=24, height=1,
                     fg_color=BLUE_DARK).pack(side="left", padx=4)
@@ -174,15 +170,13 @@ class SecureWipeApp(ctk.CTk):
         self._build_stepper()
 
     # ──────────────────────────────────────────────
-    # Footer avec boutons nav
+    # Footer Navigation
     # ──────────────────────────────────────────────
 
     def _build_footer(self):
-        # Gauche : version
         ctk.CTkLabel(self._footer, text="SecureWipe v2.0.0 — GPL v3",
             font=FONT_SMALL, text_color=TEXT_DIM).pack(side="left", padx=16)
 
-        # Droite : boutons
         btn_frame = ctk.CTkFrame(self._footer, fg_color="transparent")
         btn_frame.pack(side="right", padx=16)
 
@@ -195,7 +189,7 @@ class SecureWipeApp(ctk.CTk):
         self._btn_back.pack(side="left", padx=(0,8))
 
         self._btn_next = ctk.CTkButton(btn_frame,
-            text="Suivant →", font=FONT_BTN, height=BTN_H,
+            text="Next →", font=FONT_BTN, height=BTN_H,
             fg_color=BLUE_PRIMARY, hover_color=BLUE_LIGHT,
             text_color="#ffffff", corner_radius=RADIUS_SM,
             command=self._go_next)
@@ -220,7 +214,7 @@ class SecureWipeApp(ctk.CTk):
             )
 
     # ──────────────────────────────────────────────
-    # Navigation
+    # Navigation Logic
     # ──────────────────────────────────────────────
 
     def _show_step(self, n):
@@ -228,7 +222,7 @@ class SecureWipeApp(ctk.CTk):
             w.destroy()
         self._step = n
         if n < 3:
-            self._step_done = 0  # Reset si on revient en arrière
+            self._step_done = 0
         self._refresh_stepper()
         self._update_nav_buttons()
 
@@ -237,13 +231,12 @@ class SecureWipeApp(ctk.CTk):
             self._s1.pack(fill="both", expand=True)
             self._s1.bind("<<LangChanged>>",
                 lambda e: self._switch_lang(
-                    "FR" if self._s1.get_lang()=="fr" else "EN"))
+                    "EN" if self._s1.get_lang()=="en" else "FR"))
             self._s1.bind("<<NextStep>>", lambda e: self._go_next())
-            # Raccourci clavier global Entrée
             self.bind("<Return>", lambda e: self._go_next())
 
         elif n == 1:
-            self.unbind("<Return>")  # Plus de navigation par Entrée après step1
+            self.unbind("<Return>")
             self._s2 = Step2Disk(self._content)
             self._s2.pack(fill="both", expand=True)
 
@@ -272,13 +265,12 @@ class SecureWipeApp(ctk.CTk):
             op = self._s1.validate()
             if not op: return
             self._operator = op
-            # Sync langue
             new_lang = self._s1.get_lang()
             if new_lang != self._lang:
                 self._lang = new_lang
                 from core import i18n as im
                 im._translations = im._load(self._lang)
-                self._lang_var.set("FR" if self._lang=="fr" else "EN")
+                self._lang_var.set("EN" if self._lang=="en" else "FR")
             self._show_step(1)
 
         elif self._step == 1:
@@ -292,7 +284,6 @@ class SecureWipeApp(ctk.CTk):
             self._show_step(3)
 
         elif self._step == 3:
-            # Confirmation puis lancement
             self._confirm_and_wipe()
 
     def _go_back(self):
@@ -300,7 +291,7 @@ class SecureWipeApp(ctk.CTk):
             self._show_step(self._step - 1)
 
     def _confirm_and_wipe(self):
-        """Fenêtre de confirmation avant effacement."""
+        """Confirmation dialog prior to wiping."""
         from core.i18n import t
         dialog = ctk.CTkToplevel(self)
         dialog.title("Confirmation")
@@ -319,7 +310,7 @@ class SecureWipeApp(ctk.CTk):
             font=FONT_BODY, text_color=TEXT_PRIMARY).pack(pady=8)
 
         ctk.CTkLabel(dialog,
-            text=f"Tapez  {t('confirm_word')}  pour confirmer :",
+            text=f"Type {t('confirm_word')} to confirm:",
             font=FONT_SMALL, text_color=TEXT_SECOND).pack(pady=(16,4))
 
         confirm_var = ctk.StringVar()
@@ -345,13 +336,13 @@ class SecureWipeApp(ctk.CTk):
                 self._s4.start_wipe()
             else:
                 err_lbl.configure(
-                    text=f"Tapez exactement :  {t('confirm_word')}")
+                    text=f"Type exactly: {t('confirm_word')}")
 
         ctk.CTkButton(btn_frame, text=t("confirm_word"),
             font=FONT_BTN, fg_color=RED_DANGER, hover_color=RED_LIGHT,
             height=BTN_H, corner_radius=RADIUS_SM, command=_do
             ).pack(side="left", padx=8)
-        ctk.CTkButton(btn_frame, text="Annuler",
+        ctk.CTkButton(btn_frame, text="Cancel",
             font=FONT_BTN, fg_color=BG_CARD, hover_color=BG_HOVER,
             border_width=1, border_color=BORDER,
             height=BTN_H, corner_radius=RADIUS_SM,
@@ -360,35 +351,35 @@ class SecureWipeApp(ctk.CTk):
         entry.bind("<Return>", lambda e: _do())
 
     def quit_app(self):
-        """Ferme le GUI ET le process Python (ferme aussi le terminal)."""
+        """Terminates GUI and process."""
         import sys, os
         self.destroy()
         os._exit(0)
 
     def _on_wipe_done(self, event=None):
-        """Marque le stepper final en vert."""
+        """Updates stepper status to finished."""
         self._btn_back.configure(state="disabled")
         self._btn_next.configure(state="disabled")
         self._step_done = 4
         self._refresh_stepper()
 
     # ──────────────────────────────────────────────
-    # Changement de langue
+    # Language Switch
     # ──────────────────────────────────────────────
 
     def _switch_lang(self, val):
-        # Bloque si un effacement est en cours
         if self._step == 3 and hasattr(self, "_s4") and getattr(self._s4, "_running", False):
-            self._lang_var.set("FR" if self._lang == "fr" else "EN")  # Remet l'ancienne valeur
+            self._lang_var.set("EN" if self._lang == "en" else "FR")
             return
-        self._lang = "fr" if val == "FR" else "en"
+        self._lang = "en" if val == "EN" else "fr"
         from core import i18n as im
         im._translations = im._load(self._lang)
         self._lang_var.set(val)
         self._show_step(self._step)
 
 
-def run_gui(lang: str = "fr"):
-    """Point d'entrée GUI."""
+def run_gui(lang: str = "en"):
+    """GUI Entry Point."""
     app = SecureWipeApp(lang=lang)
     app.mainloop()
+
