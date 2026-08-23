@@ -18,7 +18,20 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-app = FastAPI(title="SecureWipe Verification & PDF Certificate Generator API", version="2.0.0")
+tags_metadata = [
+    {"name": "Verification & Ledger", "description": "Endpoints to query and verify tamper-proof blockchain blocks."},
+    {"name": "Certificates", "description": "Endpoints for rendering and downloading cryptographically signed PDF certificates."},
+    {"name": "Storage & Execution", "description": "Drive discovery and web sanitization execution endpoints."},
+    {"name": "Circular Economy", "description": "Recycling recommendations and asset recovery network integration."}
+]
+
+app = FastAPI(
+    title="SecureWipe Verification & PDF Certificate Generator API",
+    description="REST API for tamper-proof data sanitization verification, PDF certificate generation, and blockchain anchoring.",
+    version="2.0.0",
+    openapi_tags=tags_metadata
+)
+
 
 # Service CORS pour tests locaux et intégration Web
 app.add_middleware(
@@ -106,8 +119,9 @@ def read_root():
     return {"message": "SecureWipe Verification & PDF Generator API is operational."}
 
 
-@app.get("/verify")
+@app.get("/verify", tags=["Verification & Ledger"])
 def verify_hash(hash: str = Query(..., description="Blockchain block hash to verify")):
+
     """
     Consulte trust/chain.json et retourne la preuve UNIQUEMENT si le hash existe dans la blockchain.
     Accepts hashes with or without 0x prefix.
