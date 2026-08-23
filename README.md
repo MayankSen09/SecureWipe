@@ -95,8 +95,10 @@ Start the FastAPI server to access the live web verification portal:
 .\venv\Scripts\python.exe -m uvicorn api.app:app --host 0.0.0.0 --port 8000
 ```
 - 🌐 **Web Portal:** Open [http://localhost:8000](http://localhost:8000) in your browser.
+- 💚 **Health Status API:** `GET /api/v1/health`
 - 🔍 **Verification API:** `GET /verify?hash=<block_hash>`
 - 📄 **PDF Certificate Endpoint:** `GET /download-pdf?hash=<block_hash>`
+
 
 ### Option E: Android Smartphone Wipe Agent
 Sanitize connected mobile assets via ADB/Fastboot or test in mock mode:
@@ -150,11 +152,11 @@ SecureWipe/
 Ensure system integrity by running unit tests and checking the blockchain chain:
 
 ```powershell
-# Run confidence engine unit tests
-python -m unittest tests/test_confidence.py
+# Run the complete test suite
+.\venv\Scripts\python.exe -m unittest discover tests
 
 # Verify blockchain ledger chain integrity
-python trust/blockchain.py
+.\venv\Scripts\python.exe trust/blockchain.py
 ```
 
 ---
