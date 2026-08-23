@@ -1120,9 +1120,10 @@
       <p>Enter the cryptographic block hash or scan the QR code to verify proof of sanitization anchored on the blockchain ledger.<br><small style="color:var(--text-muted);">Accepts hashes with or without <code>0x</code> prefix.</small></p>
       
       <div class="search-box">
-        <input type="text" id="hashInput" class="search-input" placeholder="Enter 64-character SHA-256 block hash (e.g. ba487344ca51a6e42bcc5d584507...)" onkeydown="if(event.key==='Enter') performSearch()" />
-        <button class="search-btn" onclick="performSearch()">Verify Hash</button>
+        <input type="text" id="hashInput" class="search-input" aria-label="SHA-256 Block Hash Input" placeholder="Enter 64-character SHA-256 block hash (e.g. ba487344ca51a6e42bcc5d584507...)" onkeydown="if(event.key==='Enter') performSearch()" />
+        <button class="search-btn" aria-label="Verify Hash Button" onclick="performSearch()">Verify Hash</button>
       </div>
+
 
       <div id="resultArea"></div>
     </div>
