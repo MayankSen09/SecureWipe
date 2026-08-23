@@ -17,7 +17,8 @@ from datetime import datetime, timezone
 from typing import Optional
 from fastapi import FastAPI, HTTPException, Query, Body
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, HTMLResponse, Response
+
 from fastapi.staticfiles import StaticFiles
 
 tags_metadata = [
@@ -128,8 +129,9 @@ class MockDisk:
 def read_root():
     index_file = WEB_DIR / "index.html"
     if index_file.exists():
-        return FileResponse(str(index_file))
+        return HTMLResponse(content=index_file.read_text(encoding="utf-8"))
     return {"message": "SecureWipe Verification & PDF Generator API is operational."}
+
 
 
 @app.get("/api/v1/health", tags=["Verification & Ledger"])
@@ -234,7 +236,7 @@ def download_pdf(hash: str = Query(..., description="Block hash for PDF download
             continue
         for pdf_file in check_dir.glob("SW-*.pdf"):
             if serial and serial in pdf_file.name:
-                return FileResponse(str(pdf_file), filename=pdf_file.name, media_type="application/pdf")
+                return Response(content=pdf_file.read_bytes(), media_type="application/pdf", headers={"Content-Disposition": f"inline; filename={pdf_file.name}"})
 
     # Dynamically render PDF certificate on the fly
     try:
@@ -284,7 +286,8 @@ def download_pdf(hash: str = Query(..., description="Block hash for PDF download
             script_dir=BASE_DIR
         )
 
-        return FileResponse(str(pdf_path), filename=pdf_path.name, media_type="application/pdf")
+        return Response(content=pdf_path.read_bytes(), media_type="application/pdf", headers={"Content-Disposition": f"inline; filename={pdf_path.name}"})
+
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to render PDF certificate: {str(e)}")
