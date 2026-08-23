@@ -63,6 +63,7 @@ WEB_DIR = BASE_DIR / "web"
 
 if WEB_DIR.exists():
     try:
+        from fastapi.staticfiles import StaticFiles
         app.mount("/web", StaticFiles(directory=str(WEB_DIR)), name="web")
     except Exception:
         pass
