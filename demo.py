@@ -1,7 +1,7 @@
 """
 SecureWipe — demo.py
-Script de démonstration bout-en-bout.
-Exécute l'ensemble du pipeline en mode mock avec affichage Rich.
+End-to-end demonstration script.
+Executes the full pipeline in mock mode with Rich terminal output.
 """
 
 import os
