@@ -19,8 +19,6 @@ from fastapi import FastAPI, HTTPException, Query, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, HTMLResponse, Response
 
-from fastapi.staticfiles import StaticFiles
-
 tags_metadata = [
     {"name": "Verification & Ledger", "description": "Endpoints to query and verify tamper-proof blockchain blocks."},
     {"name": "Certificates", "description": "Endpoints for rendering and downloading cryptographically signed PDF certificates."},

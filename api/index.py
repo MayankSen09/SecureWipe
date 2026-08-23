@@ -1,5 +1,6 @@
 import os
 import sys
+import traceback
 from pathlib import Path
 
 # Ensure project root and api directory are present in sys.path
@@ -10,8 +11,25 @@ for p in (str(BASE_DIR), str(API_DIR)):
     if p not in sys.path:
         sys.path.insert(0, p)
 
-# Top-level ASGI app entrypoint for Vercel
-from api.app import app
+try:
+    from api.app import app
+    handler = app
+except Exception as err:
+    tb = traceback.format_exc()
+    from fastapi import FastAPI
+    from fastapi.responses import JSONResponse
 
-# Alias handler for Vercel Serverless Function compatibility
-handler = app
+    app = FastAPI(title="SecureWipe Diagnostic Handler")
+
+    @app.api_route("/{full_path:path}", methods=["GET", "POST", "PUT", "DELETE"])
+    def diagnostic_route(full_path: str = ""):
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "error",
+                "error": str(err),
+                "traceback": tb,
+                "sys_path": sys.path
+            }
+        )
+    handler = app
