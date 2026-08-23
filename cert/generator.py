@@ -1,15 +1,16 @@
 """
 SecureWipe — cert/generator.py
-Génération du certificat d'effacement PDF.
+PDF Sanitization Audit Certificate Generation.
 
-Contenu :
-  - Logo SecureWipe (SVG converti ou texte stylisé)
-  - Toutes les informations d'effacement
-  - Filigrane diagonal "SECUREWIPE — CERTIFIÉ"
-  - QR code local (SHA-256 du contenu du certificat)
-  - Numéro de rapport séquentiel SW-AAAA-XXXX
-  - Log brut .txt en parallèle
+Features:
+  - SecureWipe logo / header styling
+  - Comprehensive sanitization execution metadata
+  - Diagonal watermark "SECUREWIPE — CERTIFIED"
+  - Embedded SHA-256 verification QR code
+  - Sequential report identifier
+  - Parallel raw .log output creation
 """
+
 
 import hashlib
 import json

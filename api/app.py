@@ -1,7 +1,8 @@
 """
 SecureWipe — api/app.py
-Service FastAPI de vérification de l'intégrité, génération de certificat PDF avec QR Code et ancrage blockchain.
+FastAPI service for integrity verification, PDF certificate generation with QR Code, and blockchain anchoring.
 """
+
 
 import json
 import os
@@ -148,11 +149,11 @@ def health_check():
 
 @app.get("/verify", tags=["Verification & Ledger"])
 def verify_hash(hash: str = Query(..., description="Blockchain block hash to verify")):
-
     """
-    Consulte trust/chain.json et retourne la preuve UNIQUEMENT si le hash existe dans la blockchain.
+    Queries trust/chain.json and returns proof ONLY if the block hash exists in the ledger.
     Accepts hashes with or without 0x prefix.
     """
+
     clean_hash = _normalize_hash(hash)
 
     if CHAIN_FILE.exists():
@@ -196,9 +197,10 @@ def verify_hash(hash: str = Query(..., description="Blockchain block hash to ver
 @app.get("/download-pdf")
 def download_pdf(hash: str = Query(..., description="Block hash for PDF download")):
     """
-    Localise ou génère à la volée le certificat PDF associé à un block hash.
+    Locates or dynamically renders the signed PDF certificate for a block hash.
     Searches: generated_certs/, project root, and temp directory.
     """
+
     clean_hash = _normalize_hash(hash)
     matched_block = None
 
@@ -280,12 +282,13 @@ def download_pdf(hash: str = Query(..., description="Block hash for PDF download
 @app.post("/generate-certificate")
 def generate_cert_api(payload: dict = Body(...)):
     """
-    Génère un certificat PDF complet avec QR Code et retourne le block hash + lien PDF.
+    Generates a signed PDF certificate with embedded QR Code and returns the block hash + PDF URL.
     
     IMPORTANT: generate_certificate() internally calls anchor() which writes the block
     to chain.json with full metadata. We do NOT call anchor() again here to avoid
     creating duplicate blocks with empty metadata.
     """
+
     serial = str(payload.get("serial", "SW-REC-2026-X99")).strip()[:64] or "SW-REC-2026-X99"
     model = str(payload.get("model", "Dell Latitude NVMe 512GB")).strip()[:128] or "Dell Latitude NVMe 512GB"
     method = str(payload.get("method", "NIST SP 800-88 Purge (NVMe Format)")).strip()[:128] or "NIST SP 800-88 Purge"

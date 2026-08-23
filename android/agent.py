@@ -1,8 +1,9 @@
 """
 SecureWipe — android/agent.py
-Agent de purge sécurisée pour appareils mobiles Android via ADB / Fastboot.
-Supporte le mode --mock pour les démonstrations sans téléphone physique.
+Secure sanitization agent for Android mobile devices via ADB / Fastboot.
+Supports --mock mode for demonstrations without a physical device.
 """
+
 
 import argparse
 import hashlib

@@ -1,6 +1,6 @@
 """
 SecureWipe — trust/blockchain.py
-Couche d'ancrage blockchain locale pour l'intégrité des certificats.
+Local blockchain ledger anchoring layer for certificate integrity.
 """
 
 import hashlib
@@ -34,7 +34,8 @@ def get_prev_hash() -> str:
 
 
 def prepare_block(cert_meta: dict) -> dict:
-    """Précalcule un bloc d'ancrage avant la génération PDF."""
+    """Pre-computes an anchor block prior to PDF generation."""
+
     prev_hash = get_prev_hash()
     meta_str = json.dumps(cert_meta, sort_keys=True)
     meta_hash = hashlib.sha256(meta_str.encode("utf-8")).hexdigest()
@@ -56,8 +57,9 @@ def prepare_block(cert_meta: dict) -> dict:
 
 def anchor(cert_path: str, block_info: dict = None) -> str:
     """
-    Ancre le fichier PDF final et écrit le bloc dans trust/chain.json.
+    Anchors the final PDF file and appends the block record into trust/chain.json.
     """
+
     with open(cert_path, "rb") as f:
         pdf_hash = hashlib.sha256(f.read()).hexdigest()
 
