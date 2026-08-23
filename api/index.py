@@ -469,3 +469,9 @@ def start_wipe_web(payload: dict = Body(...)):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Wipe error: {str(e)}")
+
+try:
+    from mangum import Mangum
+    handler = Mangum(app)
+except Exception:
+    handler = app
