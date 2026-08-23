@@ -45,6 +45,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.exception_handler(Exception)
+def global_exception_handler(request, exc):
+    import traceback
+    return JSONResponse(
+        status_code=500,
+        content={"error": str(exc), "traceback": traceback.format_exc()}
+    )
+
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
