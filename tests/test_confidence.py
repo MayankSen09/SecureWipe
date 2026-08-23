@@ -65,6 +65,15 @@ class TestConfidenceScore(unittest.TestCase):
         self.assertLessEqual(score, 100)
         self.assertGreaterEqual(score, 0)
 
+    def test_confidence_level_rating(self):
+        from core.confidence import get_confidence_level
+        self.assertEqual(get_confidence_level(100), "HIGH")
+        self.assertEqual(get_confidence_level(90), "HIGH")
+        self.assertEqual(get_confidence_level(85), "MEDIUM")
+        self.assertEqual(get_confidence_level(70), "MEDIUM")
+        self.assertEqual(get_confidence_level(50), "LOW")
+
 if __name__ == "__main__":
     unittest.main()
+
 

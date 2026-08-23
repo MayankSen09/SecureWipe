@@ -12,10 +12,15 @@ def compute_score(
     crypto_erase: bool = False,
 ) -> int:
     """
-    Calcule le score de confiance de l'effacement de 0 à 100.
-    - Effacement firmware / crypto réussi : +50
-    - Échantillonnage de vérification réussi : +30
-    - HPA non détectée ou effacée : +20
+    Computes the erasure confidence score on a scale from 0 to 100.
+
+    Weighted breakdown:
+    - Firmware / Cryptographic Sanitization success: +50 pts
+    - Verification sampling pass: +30 pts
+    - HPA/DCO hidden sector check passed or wiped: +20 pts
+
+    Returns:
+        int: Sanitization confidence score bounded between 0 and 100.
     """
     score = 0
     if ata_success or nvme_success or crypto_erase:
@@ -25,3 +30,22 @@ def compute_score(
     if not hpa_detected or hpa_wiped:
         score += 20
     return min(100, max(0, score))
+
+
+def get_confidence_level(score: int) -> str:
+    """
+    Returns a human-readable confidence rating label based on score.
+
+    Args:
+        score (int): Confidence score (0-100).
+
+    Returns:
+        str: 'HIGH' (>=90), 'MEDIUM' (>=70), or 'LOW' (<70).
+    """
+    bounded_score = min(100, max(0, score))
+    if bounded_score >= 90:
+        return "HIGH"
+    elif bounded_score >= 70:
+        return "MEDIUM"
+    return "LOW"
+
