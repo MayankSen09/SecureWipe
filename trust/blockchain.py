@@ -77,10 +77,13 @@ def anchor(cert_path: str, block_info: dict = None) -> str:
     block_info["cert_pdf_hash"] = pdf_hash
     block_info["index"] = len(chain)
 
-    chain.append(block_info)
-    CHAIN_FILE.parent.mkdir(parents=True, exist_ok=True)
-    with open(CHAIN_FILE, "w", encoding="utf-8") as f:
-        json.dump(chain, f, indent=2)
+    try:
+        CHAIN_FILE.parent.mkdir(parents=True, exist_ok=True)
+        with open(CHAIN_FILE, "w", encoding="utf-8") as f:
+            json.dump(chain, f, indent=2)
+    except (OSError, PermissionError):
+        pass
+
 
     return block_info["block_hash"]
 

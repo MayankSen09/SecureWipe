@@ -50,8 +50,15 @@ WEB_DIR = BASE_DIR / "web"
 
 # Persistent directory for API-generated certificates (survives server restarts)
 GENERATED_CERTS_DIR = BASE_DIR / "generated_certs"
-# Ensure target directory exists for PDF persistence
-GENERATED_CERTS_DIR.mkdir(parents=True, exist_ok=True)
+try:
+    GENERATED_CERTS_DIR.mkdir(parents=True, exist_ok=True)
+except (OSError, PermissionError):
+    GENERATED_CERTS_DIR = Path(tempfile.gettempdir()) / "generated_certs"
+    try:
+        GENERATED_CERTS_DIR.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        GENERATED_CERTS_DIR = Path(tempfile.gettempdir())
+
 
 CERTIFIED_RECYCLERS = [
     {
