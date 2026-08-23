@@ -1,9 +1,5 @@
 {
-  "functions": {
-    "api/**/*.py": {
-      "includeFiles": "web/**, trust/**, cert/**, core/**"
-    }
-  },
+  "version": 2,
   "rewrites": [
     {
       "source": "/(.*)",
