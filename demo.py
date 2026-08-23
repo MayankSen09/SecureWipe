@@ -43,9 +43,11 @@ def run_demo():
     rprint("[bold yellow]STEP 1:[/bold yellow] Storage Device Discovery & HPA Analysis...")
     from core import disk_windows as dm
     from core import disk_linux as dl
+    import random
     disks = dm._mock_disks()
     target_disk = disks[0]
-    
+    target_disk.serial = f"S5YXNX0T{random.randint(100000, 999999)}"
+
     # Check HPA
     target_disk.hpa_detected = dl.detect_hpa(target_disk.device)
     

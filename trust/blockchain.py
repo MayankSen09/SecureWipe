@@ -76,6 +76,7 @@ def anchor(cert_path: str, block_info: dict = None) -> str:
 
     block_info["cert_pdf_hash"] = pdf_hash
     block_info["index"] = len(chain)
+    chain.append(block_info)
 
     try:
         CHAIN_FILE.parent.mkdir(parents=True, exist_ok=True)
