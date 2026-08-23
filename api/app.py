@@ -11,7 +11,8 @@ import time
 import re
 import tempfile
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
+
 from typing import Optional
 from fastapi import FastAPI, HTTPException, Query, Body
 from fastapi.middleware.cors import CORSMiddleware
@@ -139,7 +140,8 @@ def health_check():
         "version": "2.0.0",
         "platform": sys.platform,
         "ledger_blocks": block_count,
-        "timestamp_utc": datetime.utcnow().isoformat() + "Z"
+        "timestamp_utc": datetime.now(timezone.utc).isoformat()
+
     }
 
 
