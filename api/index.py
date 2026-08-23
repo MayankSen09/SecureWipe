@@ -154,4 +154,8 @@ def verify_hash(hash: str = Query(..., description="Blockchain block hash to ver
 def get_recyclers():
     return {"status": "success", "recyclers": CERTIFIED_RECYCLERS}
 
-handler = app
+try:
+    from a2wsgi import ASGIMiddleware
+    handler = ASGIMiddleware(app)
+except Exception:
+    handler = app
