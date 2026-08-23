@@ -50,11 +50,23 @@ def global_exception_handler(request, exc):
     )
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-if str(BASE_DIR) not in sys.path:
-    sys.path.insert(0, str(BASE_DIR))
+for p in (str(BASE_DIR), str(Path(__file__).resolve().parent), str(Path.cwd())):
+    if p not in sys.path:
+        sys.path.insert(0, p)
 
-CHAIN_FILE = BASE_DIR / "trust" / "chain.json"
-WEB_DIR = BASE_DIR / "web"
+possible_chain_files = [
+    BASE_DIR / "trust" / "chain.json",
+    Path(__file__).resolve().parent / "trust" / "chain.json",
+    Path.cwd() / "trust" / "chain.json",
+]
+CHAIN_FILE = next((f for f in possible_chain_files if f.exists()), BASE_DIR / "trust" / "chain.json")
+
+possible_web_dirs = [
+    BASE_DIR / "web",
+    Path(__file__).resolve().parent / "web",
+    Path.cwd() / "web",
+]
+WEB_DIR = next((d for d in possible_web_dirs if (d / "index.html").exists()), BASE_DIR / "web")
 
 if WEB_DIR.exists():
     try:
