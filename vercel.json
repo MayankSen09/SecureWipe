@@ -1,30 +1,8 @@
 {
-  "builds": [
-    {
-      "src": "api/index.py",
-      "use": "@vercel/python"
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "app.py": {
+      "excludeFiles": "{tests/**,venv/**,gui/**,android/**,logs/**,generated_certs/**,**/*.pdf,**/*.log,**/*.pyc}"
     }
-  ],
-  "routes": [
-    {
-      "src": "/verify",
-      "dest": "api/index.py"
-    },
-    {
-      "src": "/download-pdf",
-      "dest": "api/index.py"
-    },
-    {
-      "src": "/recyclers",
-      "dest": "api/index.py"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "api/index.py"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "index.html"
-    }
-  ]
+  }
 }

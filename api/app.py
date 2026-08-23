@@ -1,6 +1,5 @@
 """
 SecureWipe — api/app.py
-Exports main ASGI application from api/index.py.
+Legacy entrypoint. Imports from root app.py.
 """
-
-from api.index import app
+from app import app

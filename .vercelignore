@@ -1,0 +1,13 @@
+venv/
+__pycache__/
+*.pyc
+*.pdf
+*.log
+generated_certs/
+logs/
+gui/
+android/
+tests/
+.git/
+SW-*.pdf
+SW-*.log
