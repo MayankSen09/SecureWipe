@@ -111,12 +111,37 @@ class MockDisk:
         self.encryption = encryption
 
 
-@app.get("/")
+@app.get("/", tags=["Verification & Ledger"])
 def read_root():
     index_file = WEB_DIR / "index.html"
     if index_file.exists():
         return FileResponse(str(index_file))
     return {"message": "SecureWipe Verification & PDF Generator API is operational."}
+
+
+@app.get("/api/v1/health", tags=["Verification & Ledger"])
+def health_check():
+    """
+    Returns system operational status, platform info, and blockchain ledger block count.
+    """
+    block_count = 0
+    if CHAIN_FILE.exists():
+        try:
+            with open(CHAIN_FILE, "r", encoding="utf-8") as f:
+                chain = json.load(f)
+                block_count = len(chain)
+        except Exception:
+            pass
+
+    return {
+        "status": "healthy",
+        "service": "SecureWipe Verification Node",
+        "version": "2.0.0",
+        "platform": sys.platform,
+        "ledger_blocks": block_count,
+        "timestamp_utc": datetime.utcnow().isoformat() + "Z"
+    }
+
 
 
 @app.get("/verify", tags=["Verification & Ledger"])
