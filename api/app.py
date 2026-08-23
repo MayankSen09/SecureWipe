@@ -61,6 +61,13 @@ if str(BASE_DIR) not in sys.path:
 CHAIN_FILE = BASE_DIR / "trust" / "chain.json"
 WEB_DIR = BASE_DIR / "web"
 
+if WEB_DIR.exists():
+    try:
+        app.mount("/web", StaticFiles(directory=str(WEB_DIR)), name="web")
+    except Exception:
+        pass
+
+
 
 # Persistent directory for API-generated certificates (survives server restarts)
 GENERATED_CERTS_DIR = BASE_DIR / "generated_certs"
