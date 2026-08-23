@@ -257,12 +257,36 @@
       width: 12px;
       height: 12px;
       border-radius: 50%;
+      cursor: pointer;
+      transition: filter 0.2s;
     }
+
+    .terminal-buttons span:hover { filter: brightness(1.2); }
 
     .terminal-buttons .close { background: #ff5f56; }
     .terminal-buttons .minimize { background: #ffbd2e; }
     .terminal-buttons .maximize { background: #27c93f; }
-
+    
+    /* Terminal States */
+    .terminal-window.minimized .terminal-body {
+      display: none;
+    }
+    
+    .terminal-window.maximized {
+      position: fixed;
+      top: 50px;
+      left: 5%;
+      width: 90%;
+      height: 85vh;
+      z-index: 9999;
+      transform: none !important;
+      animation: none;
+      box-shadow: 0 50px 100px rgba(0,0,0,0.5);
+    }
+    .terminal-window.maximized .terminal-body {
+      height: calc(100% - 40px);
+      overflow-y: auto;
+    }
     .terminal-title {
       flex: 1;
       text-align: center;
@@ -949,9 +973,9 @@
         <div class="terminal-window">
           <div class="terminal-header" style="display: flex; align-items: center;">
             <div class="terminal-buttons">
-              <span class="close"></span>
-              <span class="minimize"></span>
-              <span class="maximize"></span>
+              <span class="close" onclick="document.querySelector('.terminal-window').style.display='none'"></span>
+              <span class="minimize" onclick="document.querySelector('.terminal-window').classList.toggle('minimized')"></span>
+              <span class="maximize" onclick="document.querySelector('.terminal-window').classList.toggle('maximized')"></span>
             </div>
             <div class="terminal-title" style="flex: 1; text-align: center;">demo.py — bash</div>
             <button onclick="playTerminalAnimation()" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: background 0.2s;">
@@ -1732,6 +1756,34 @@
     // Handle URL parameters on load
     window.addEventListener('DOMContentLoaded', () => {
       fetchBlocks();
+      
+      // 3D Terminal Interaction
+      const terminal = document.querySelector('.terminal-window');
+      const heroTerminal = document.querySelector('.hero-terminal');
+      
+      if (heroTerminal && terminal) {
+        heroTerminal.addEventListener('mousemove', (e) => {
+          if (terminal.classList.contains('maximized') || terminal.classList.contains('minimized')) return;
+          const rect = heroTerminal.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          
+          const centerX = rect.width / 2;
+          const centerY = rect.height / 2;
+          
+          const rotateX = ((y - centerY) / centerY) * -10;
+          const rotateY = ((x - centerX) / centerX) * 10;
+          
+          terminal.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+          terminal.style.transition = 'transform 0.1s ease-out';
+        });
+
+        heroTerminal.addEventListener('mouseleave', () => {
+          if (terminal.classList.contains('maximized') || terminal.classList.contains('minimized')) return;
+          terminal.style.transform = '';
+          terminal.style.transition = '';
+        });
+      }
       
       const urlParams = new URLSearchParams(window.location.search);
       const rawHash = urlParams.get('hash');
