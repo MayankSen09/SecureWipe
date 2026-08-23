@@ -48,8 +48,9 @@ app.add_middleware(
 @app.exception_handler(Exception)
 def global_exception_handler(request, exc):
     import traceback
+    status_code = getattr(exc, "status_code", 500)
     return JSONResponse(
-        status_code=500,
+        status_code=status_code,
         content={"error": str(exc), "traceback": traceback.format_exc()}
     )
 
