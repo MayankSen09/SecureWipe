@@ -381,30 +381,37 @@ def generate_certificate(
     from reportlab.platypus import Image as RLImage
 
     # Logo + titre côte à côte sur fond sombre
+    logo_loaded = False
     if logo_path.exists():
-        logo_img = RLImage(str(logo_path), width=3.2*cm, height=3.2*cm)
-        title_cell = [
-            Spacer(1, 0.3*cm),
-            Paragraph(t("report_title_main"), st["title"]),
-            Spacer(1, 0.15*cm),
-            Paragraph("ANSSI · NIST SP 800-88 Rev.2 · GPL v3", st["subtitle"]),
-            Spacer(1, 0.3*cm),
-        ]
-        header_data = [[logo_img, title_cell]]
-        header_tbl = Table(header_data, colWidths=[3.6*cm, 13.4*cm])
-        header_tbl.setStyle(TableStyle([
-            ("BACKGROUND",    (0, 0), (-1, -1), COLOR_DARK_BG),
-            ("VALIGN",        (0, 0), (-1, -1), "MIDDLE"),
-            ("ALIGN",         (0, 0), (0, -1),  "CENTER"),
-            ("TOPPADDING",    (0, 0), (-1, -1), 6),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-            ("LEFTPADDING",   (0, 0), (0, -1),  4),
-            ("RIGHTPADDING",  (1, 0), (1, -1),  8),
-        ]))
-        story.append(header_tbl)
-    else:
+        try:
+            logo_img = RLImage(str(logo_path), width=3.2*cm, height=3.2*cm)
+            title_cell = [
+                Spacer(1, 0.3*cm),
+                Paragraph(t("report_title_main"), st["title"]),
+                Spacer(1, 0.15*cm),
+                Paragraph("ANSSI · NIST SP 800-88 Rev.2 · GPL v3", st["subtitle"]),
+                Spacer(1, 0.3*cm),
+            ]
+            header_data = [[logo_img, title_cell]]
+            header_tbl = Table(header_data, colWidths=[3.6*cm, 13.4*cm])
+            header_tbl.setStyle(TableStyle([
+                ("BACKGROUND",    (0, 0), (-1, -1), COLOR_DARK_BG),
+                ("VALIGN",        (0, 0), (-1, -1), "MIDDLE"),
+                ("ALIGN",         (0, 0), (0, -1),  "CENTER"),
+                ("TOPPADDING",    (0, 0), (-1, -1), 6),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                ("LEFTPADDING",   (0, 0), (0, -1),  4),
+                ("RIGHTPADDING",  (1, 0), (1, -1),  8),
+            ]))
+            story.append(header_tbl)
+            logo_loaded = True
+        except Exception:
+            logo_loaded = False
+
+    if not logo_loaded:
         # Fallback sans logo
         title_data = [[Paragraph(t("report_title_main"), st["title"])]]
+
         title_tbl = Table(title_data, colWidths=[17*cm])
         title_tbl.setStyle(TableStyle([
             ("BACKGROUND",    (0, 0), (-1, -1), COLOR_DARK_BG),
