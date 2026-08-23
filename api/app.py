@@ -136,10 +136,14 @@ class MockDisk:
 
 @app.get("/", tags=["Verification & Ledger"])
 def read_root():
-    index_file = WEB_DIR / "index.html"
-    if index_file.exists():
-        return HTMLResponse(content=index_file.read_text(encoding="utf-8"))
+    try:
+        index_file = WEB_DIR / "index.html"
+        if index_file.exists():
+            return HTMLResponse(content=index_file.read_text(encoding="utf-8", errors="replace"))
+    except Exception as e:
+        return JSONResponse({"status": "ok", "message": "SecureWipe API operational", "error": str(e)})
     return {"message": "SecureWipe Verification & PDF Generator API is operational."}
+
 
 
 
