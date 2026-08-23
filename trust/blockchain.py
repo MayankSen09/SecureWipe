@@ -12,6 +12,15 @@ from pathlib import Path
 
 CHAIN_FILE = Path(__file__).parent / "chain.json"
 
+def is_valid_sha256(hash_str: str) -> bool:
+    """
+    Validates if a string is a 64-character hexadecimal SHA-256 hash.
+    """
+    if not isinstance(hash_str, str):
+        return False
+    clean_hash = hash_str.lower().removeprefix("0x") if hash_str.lower().startswith("0x") else hash_str.lower()
+    return len(clean_hash) == 64 and all(c in "0123456789abcdef" for c in clean_hash)
+
 def get_prev_hash() -> str:
     if os.path.exists(CHAIN_FILE):
         try:
@@ -22,6 +31,7 @@ def get_prev_hash() -> str:
         except Exception:
             pass
     return "0" * 64
+
 
 def prepare_block(cert_meta: dict) -> dict:
     """Précalcule un bloc d'ancrage avant la génération PDF."""
