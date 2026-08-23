@@ -1119,40 +1119,39 @@
 
   <!-- CLI Download Section -->
   <section id="cli" class="gen-section animate-on-scroll">
-    <div class="gen-card" style="background: linear-gradient(135deg, #161b22 0%, #0d1117 100%); color: white; border: 1px solid rgba(255,255,255,0.1);">
+    <div class="gen-card">
       <div style="text-align: center; max-width: 650px; margin: 0 auto 2rem;">
-        <h2 style="color: white;">💻 Download SecureWipe CLI</h2>
-        <p style="color: #8b949e;">Run the verifiable data sanitization engine natively on your own hardware. Supports Windows, Linux, and macOS. Automatically generates certificates and syncs with the blockchain.</p>
+        <h2 style="display: flex; align-items: center; justify-content: center; gap: 0.75rem;">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Download SecureWipe CLI
+        </h2>
+        <p style="color: var(--text-muted);">Run the verifiable data sanitization engine natively on your own hardware. Supports Windows, Linux, and macOS. Automatically generates certificates and syncs with the blockchain.</p>
       </div>
 
       <div style="display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap;">
         <!-- Windows Install -->
-        <div style="background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); flex: 1; min-width: 300px;">
-          <h4 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+        <div style="background: var(--bg-primary); padding: 1.5rem; border-radius: 16px; border: 1px solid var(--border-color); flex: 1; min-width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+          <h4 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
             Windows (PowerShell)
           </h4>
-          <p style="font-size: 0.85rem; color: #8b949e; margin-bottom: 1rem;">Run this command in PowerShell as Administrator to download and install dependencies:</p>
-          <div style="background: #000; padding: 1rem; border-radius: 8px; font-family: monospace; font-size: 0.8rem; overflow-x: auto; color: #58a6ff; user-select: all; cursor: pointer;" onclick="navigator.clipboard.writeText('iwr -useb https://raw.githubusercontent.com/MayankSen09/SecureWipe/master/install.ps1 | iex')">
-            iwr -useb https://raw.githubusercontent.com/MayankSen09/SecureWipe/master/install.ps1 | iex
-          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Run this command in PowerShell as Administrator to download and install dependencies:</p>
+          <div style="background: #1e1e1e; padding: 1rem; border-radius: 8px; font-family: monospace; font-size: 0.85rem; color: #58a6ff; user-select: all; cursor: pointer; word-break: break-all; white-space: pre-wrap;" onclick="navigator.clipboard.writeText('iwr -useb https://raw.githubusercontent.com/MayankSen09/SecureWipe/master/install.ps1 | iex')">iwr -useb https://raw.githubusercontent.com/MayankSen09/SecureWipe/master/install.ps1 | iex</div>
         </div>
 
         <!-- Linux Install -->
-        <div style="background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); flex: 1; min-width: 300px;">
-          <h4 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+        <div style="background: var(--bg-primary); padding: 1.5rem; border-radius: 16px; border: 1px solid var(--border-color); flex: 1; min-width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+          <h4 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"></path><path d="M12 8a6 6 0 0 0-6 6v4a6 6 0 0 0 12 0v-4a6 6 0 0 0-6-6z"></path><path d="M6 20h12"></path></svg>
             Linux / macOS (Bash)
           </h4>
-          <p style="font-size: 0.85rem; color: #8b949e; margin-bottom: 1rem;">Run this command in your terminal to clone the repository and install requirements:</p>
-          <div style="background: #000; padding: 1rem; border-radius: 8px; font-family: monospace; font-size: 0.8rem; overflow-x: auto; color: #3fb950; user-select: all; cursor: pointer;" onclick="navigator.clipboard.writeText('curl -sSL https://raw.githubusercontent.com/MayankSen09/SecureWipe/master/install.sh | bash')">
-            curl -sSL https://raw.githubusercontent.com/MayankSen09/SecureWipe/master/install.sh | bash
-          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Run this command in your terminal to clone the repository and install requirements:</p>
+          <div style="background: #1e1e1e; padding: 1rem; border-radius: 8px; font-family: monospace; font-size: 0.85rem; color: #3fb950; user-select: all; cursor: pointer; word-break: break-all; white-space: pre-wrap;" onclick="navigator.clipboard.writeText('curl -sSL https://raw.githubusercontent.com/MayankSen09/SecureWipe/master/install.sh | bash')">curl -sSL https://raw.githubusercontent.com/MayankSen09/SecureWipe/master/install.sh | bash</div>
         </div>
       </div>
       
       <div style="text-align: center; margin-top: 2rem;">
-        <a href="https://github.com/MayankSen09/SecureWipe" target="_blank" class="btn-secondary" style="border-color: rgba(255, 255, 255, 0.4); color: white;">View Source Code on GitHub</a>
+        <a href="https://github.com/MayankSen09/SecureWipe" target="_blank" class="btn-secondary">View Source Code on GitHub</a>
       </div>
     </div>
   </section>
@@ -1170,6 +1169,32 @@
 
 
       <div id="resultArea"></div>
+    </div>
+  </section>
+
+  <!-- Block Explorer -->
+  <section id="explorer" class="gen-section animate-on-scroll" style="padding-top: 2rem;">
+    <div class="card" style="max-width: 1200px; margin: 0 auto; overflow-x: auto;">
+      <h2>Ledger Block Explorer</h2>
+      <p style="margin-bottom: 1.5rem;">Recent sanitization certificates anchored to the blockchain. Click a hash to verify it.</p>
+      
+      <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--border-color); color: var(--text-muted);">
+            <th style="padding: 1rem 0.5rem;">Block Hash</th>
+            <th style="padding: 1rem 0.5rem;">Timestamp</th>
+            <th style="padding: 1rem 0.5rem;">Asset S/N</th>
+            <th style="padding: 1rem 0.5rem;">Score</th>
+          </tr>
+        </thead>
+        <tbody id="explorerBody">
+          <tr><td colspan="4" style="padding: 2rem; text-align: center; color: var(--text-muted);">Loading blocks...</td></tr>
+        </tbody>
+      </table>
+      
+      <div style="text-align: center; margin-top: 1.5rem;">
+        <button class="btn-secondary" onclick="fetchBlocks()" style="padding: 0.5rem 1.5rem; font-size: 0.85rem;">Refresh Ledger</button>
+      </div>
     </div>
   </section>
 
@@ -1646,8 +1671,47 @@
       }, 60);
     }, 1000);
 
+    // --- Block Explorer Functions ---
+    async function fetchBlocks() {
+      const tbody = document.getElementById('explorerBody');
+      try {
+        tbody.innerHTML = '<tr><td colspan="4" style="padding: 2rem; text-align: center; color: var(--text-muted);">Loading blocks...</td></tr>';
+        const response = await fetch(API_BASE + '/api/blocks?limit=10');
+        const data = await response.json();
+        
+        if (data.status === 'success' && data.blocks && data.blocks.length > 0) {
+          tbody.innerHTML = '';
+          data.blocks.forEach(block => {
+            const shortHash = block.block_hash.substring(0, 16) + '...';
+            const date = new Date(block.timestamp * 1000).toLocaleString();
+            const tr = document.createElement('tr');
+            tr.style.borderBottom = '1px solid var(--border-color)';
+            tr.style.cursor = 'pointer';
+            tr.onclick = () => {
+              document.getElementById('hashInput').value = block.block_hash;
+              document.getElementById('verify').scrollIntoView();
+              verifyHash(block.block_hash);
+            };
+            tr.innerHTML = `
+              <td style="padding: 1rem 0.5rem; color: var(--accent-blue); font-family: monospace;">${shortHash}</td>
+              <td style="padding: 1rem 0.5rem; color: var(--text-muted);">${date}</td>
+              <td style="padding: 1rem 0.5rem;">${escapeHtml(block.serial)}</td>
+              <td style="padding: 1rem 0.5rem; color: var(--success-green); font-weight: 600;">${block.confidence_score}%</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } else {
+          tbody.innerHTML = '<tr><td colspan="4" style="padding: 2rem; text-align: center; color: var(--text-muted);">No blocks found.</td></tr>';
+        }
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="4" style="padding: 2rem; text-align: center; color: var(--danger-red);">Failed to load blockchain ledger.</td></tr>';
+      }
+    }
+
     // Handle URL parameters on load
     window.addEventListener('DOMContentLoaded', () => {
+      fetchBlocks();
+      
       const urlParams = new URLSearchParams(window.location.search);
       const rawHash = urlParams.get('hash');
       if (rawHash) {

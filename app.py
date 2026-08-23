@@ -135,6 +135,18 @@ def verify_hash(hash: str = Query(..., description="Blockchain block hash to ver
     )
 
 
+@app.get("/api/blocks")
+def get_blocks(limit: int = Query(50, description="Number of recent blocks to retrieve")):
+    chain = _load_chain()
+    # Reverse to get newest blocks first
+    chain.reverse()
+    return {
+        "status": "success",
+        "total_blocks": len(chain),
+        "blocks": chain[:limit]
+    }
+
+
 @app.get("/recyclers")
 def get_recyclers():
     return {"status": "success", "recyclers": CERTIFIED_RECYCLERS}
