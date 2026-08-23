@@ -223,21 +223,14 @@
       border-radius: 14px;
       overflow: hidden;
       box-shadow: 0 30px 60px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.1);
-      transform: rotateY(-10deg) rotateX(5deg) scale(0.95);
-      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
       border: 1px solid rgba(255,255,255,0.1);
       backdrop-filter: blur(20px);
-      animation: float3D 6s ease-in-out infinite;
+      transform-style: preserve-3d;
     }
-
-    @keyframes float3D {
-      0%, 100% { transform: rotateY(-10deg) rotateX(5deg) scale(0.95) translateY(0); }
-      50% { transform: rotateY(-10deg) rotateX(5deg) scale(0.95) translateY(-12px); }
-    }
-
-    .terminal-window:hover {
-      animation-play-state: paused;
-      transform: rotateY(0) rotateX(0) scale(1) translateY(0);
+    
+    .terminal-window.minimized {
+      height: 42px !important;
+      min-height: 42px !important;
     }
 
     .terminal-header {
@@ -967,15 +960,16 @@
           <a href="#generator" class="btn-primary">Generate PDF Cert</a>
           <a href="#verify" class="btn-secondary">Verify QR Code</a>
           <a href="#cli" class="btn-secondary" style="border: 1px solid var(--border-color); color: var(--text-main);">Download CLI</a>
+          <a href="#" id="reopen-terminal-btn" class="btn-secondary" style="display: none; border-color: var(--accent-blue); color: var(--text-main);" onclick="event.preventDefault(); restoreHeroTerminal();">Restore Terminal</a>
         </div>
       </div>
       <div class="hero-terminal animate-on-scroll">
         <div class="terminal-window">
           <div class="terminal-header" style="display: flex; align-items: center;">
             <div class="terminal-buttons">
-              <span class="close" onclick="document.querySelector('.terminal-window').style.display='none'"></span>
-              <span class="minimize" onclick="document.querySelector('.terminal-window').classList.toggle('minimized')"></span>
-              <span class="maximize" onclick="document.querySelector('.terminal-window').classList.toggle('maximized')"></span>
+              <span class="close" onclick="closeHeroTerminal()"></span>
+              <span class="minimize" onclick="minimizeHeroTerminal()"></span>
+              <span class="maximize" onclick="maximizeHeroTerminal()"></span>
             </div>
             <div class="terminal-title" style="flex: 1; text-align: center;">demo.py — bash</div>
             <button onclick="playTerminalAnimation()" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: background 0.2s;">
@@ -1246,13 +1240,60 @@
     <p>Ministry of Mines Software Solution — Enterprise Data Sanitization & Circular Economy Platform.</p>
   </footer>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
   <script>
     // --- API Base URL Configuration ---
-    // When served by FastAPI at localhost:8000, use '' (same origin).
-    // When opened as file:// or from a different port, set the backend URL.
     const API_BASE = (window.location.protocol === 'file:' || (window.location.port && window.location.port !== '8000'))
       ? 'http://localhost:8000'
       : '';
+
+    // --- Hero Terminal Mac Controls ---
+    function closeHeroTerminal() {
+      document.querySelector('.hero-terminal').style.display = 'none';
+      document.getElementById('reopen-terminal-btn').style.display = 'inline-flex';
+    }
+
+    function restoreHeroTerminal() {
+      document.querySelector('.hero-terminal').style.display = 'block';
+      document.getElementById('reopen-terminal-btn').style.display = 'none';
+      // Re-initialize tilt just in case
+      initVanillaTilt();
+    }
+
+    function minimizeHeroTerminal() {
+      const tw = document.querySelector('.terminal-window');
+      tw.classList.toggle('minimized');
+    }
+
+    function maximizeHeroTerminal() {
+      const tw = document.querySelector('.terminal-window');
+      tw.classList.toggle('maximized');
+      
+      if (tw.classList.contains('maximized')) {
+        // Disable 3D tilt when full screen
+        if(tw.vanillaTilt) tw.vanillaTilt.destroy();
+        tw.style.transform = 'none';
+      } else {
+        // Re-enable 3D tilt when windowed
+        initVanillaTilt();
+      }
+    }
+
+    function initVanillaTilt() {
+      const tw = document.querySelector('.terminal-window');
+      if(tw && !tw.classList.contains('maximized')) {
+        VanillaTilt.init(tw, {
+          max: 15,
+          speed: 400,
+          glare: true,
+          "max-glare": 0.15,
+          perspective: 1000
+        });
+      }
+    }
+
+    // Initialize 3D effect on load
+    document.addEventListener("DOMContentLoaded", initVanillaTilt);
 
     // --- Normalize hash input: strip leading whitespace and optional 0x prefix ---
     function normalizeHash(raw) {
@@ -1757,33 +1798,7 @@
     window.addEventListener('DOMContentLoaded', () => {
       fetchBlocks();
       
-      // 3D Terminal Interaction
-      const terminal = document.querySelector('.terminal-window');
-      const heroTerminal = document.querySelector('.hero-terminal');
       
-      if (heroTerminal && terminal) {
-        heroTerminal.addEventListener('mousemove', (e) => {
-          if (terminal.classList.contains('maximized') || terminal.classList.contains('minimized')) return;
-          const rect = heroTerminal.getBoundingClientRect();
-          const x = e.clientX - rect.left;
-          const y = e.clientY - rect.top;
-          
-          const centerX = rect.width / 2;
-          const centerY = rect.height / 2;
-          
-          const rotateX = ((y - centerY) / centerY) * -10;
-          const rotateY = ((x - centerX) / centerX) * 10;
-          
-          terminal.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
-          terminal.style.transition = 'transform 0.1s ease-out';
-        });
-
-        heroTerminal.addEventListener('mouseleave', () => {
-          if (terminal.classList.contains('maximized') || terminal.classList.contains('minimized')) return;
-          terminal.style.transform = '';
-          terminal.style.transition = '';
-        });
-      }
       
       const urlParams = new URLSearchParams(window.location.search);
       const rawHash = urlParams.get('hash');
