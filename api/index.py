@@ -78,6 +78,8 @@ def _normalize_hash(raw: str) -> str:
     return h
 
 @app.get("/", tags=["Verification & Ledger"])
+@app.get("/api/index", tags=["Verification & Ledger"])
+@app.get("/api/index.py", tags=["Verification & Ledger"])
 def read_root():
     try:
         index_file = WEB_DIR / "index.html"
@@ -151,3 +153,5 @@ def verify_hash(hash: str = Query(..., description="Blockchain block hash to ver
 @app.get("/recyclers")
 def get_recyclers():
     return {"status": "success", "recyclers": CERTIFIED_RECYCLERS}
+
+handler = app
