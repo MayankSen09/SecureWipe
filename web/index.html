@@ -947,13 +947,16 @@
       </div>
       <div class="hero-terminal animate-on-scroll">
         <div class="terminal-window">
-          <div class="terminal-header">
+          <div class="terminal-header" style="display: flex; align-items: center;">
             <div class="terminal-buttons">
               <span class="close"></span>
               <span class="minimize"></span>
               <span class="maximize"></span>
             </div>
-            <div class="terminal-title">demo.py — bash</div>
+            <div class="terminal-title" style="flex: 1; text-align: center;">demo.py — bash</div>
+            <button onclick="playTerminalAnimation()" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: background 0.2s;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Run Demo
+            </button>
           </div>
           <div class="terminal-body" id="terminalOutput">
             <div id="t-line-1" class="t-line t-visible"><span class="t-prompt">~/securewipe$</span><span class="t-command" id="t-cmd"></span><span class="t-cursor" id="t-cursor"></span></div>
@@ -1634,10 +1637,23 @@
     });
 
     // --- Terminal Typing Animation ---
-    setTimeout(() => {
-      const cmdText = "python demo.py --target /dev/nvme0n1";
+    window.playTerminalAnimation = function() {
+      // Reset state
       const cmdEl = document.getElementById('t-cmd');
       const cursor1 = document.getElementById('t-cursor');
+      cmdEl.textContent = "";
+      cursor1.style.display = 'inline-block';
+      
+      for (let j = 2; j <= 11; j++) {
+        const el = document.getElementById('t-line-' + j);
+        if (el) {
+          el.classList.remove('t-visible');
+          // Fix for the wiping lines which get display:none
+          if (j >= 4 && j <= 6) el.style.display = 'block'; 
+        }
+      }
+
+      const cmdText = "python demo.py --target /dev/nvme0n1";
       let i = 0;
       
       const typeInterval = setInterval(() => {
@@ -1669,6 +1685,11 @@
           setTimeout(() => document.getElementById('t-line-11').classList.add('t-visible'), 4800);
         }
       }, 60);
+    };
+
+    // Auto-play once on load
+    setTimeout(() => {
+      window.playTerminalAnimation();
     }, 1000);
 
     // --- Block Explorer Functions ---
