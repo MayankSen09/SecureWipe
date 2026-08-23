@@ -150,5 +150,9 @@ Write-Host ""
 Write-Host "  Mode mock (test sans effacement reel) :" -ForegroundColor White
 Write-Host "  Set SECUREWIPE_MOCK=1 puis : $PythonCmd securewipe.py" -ForegroundColor Cyan
 Write-Host ""
+Write-Host "  Serveur Web & API de verification :" -ForegroundColor White
+Write-Host "  $PythonCmd api/app.py" -ForegroundColor Cyan
+Write-Host ""
+
 
 Read-Host "Appuyez sur Entree pour quitter"

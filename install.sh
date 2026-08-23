@@ -159,5 +159,7 @@ echo -e "${GREEN}${BOLD}╔═════════════════�
 echo -e "${GREEN}${BOLD}║   Installation terminée avec succès !    ║${NC}"
 echo -e "${GREEN}${BOLD}╚══════════════════════════════════════════╝${NC}"
 echo ""
-echo -e "  Lancement : ${CYAN}sudo python3 securewipe.py${NC}"
+echo -e "  Lancement CLI : ${CYAN}sudo python3 securewipe.py${NC}"
+echo -e "  Serveur Web & API de Vérification : ${CYAN}python3 api/app.py${NC}"
 echo ""
+
