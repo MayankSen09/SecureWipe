@@ -22,6 +22,10 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 
+# ──────────────────────────────────────────────
+# SecureWipe Color Palette
+# ──────────────────────────────────────────────
+
 try:
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.units import cm, mm
@@ -63,25 +67,24 @@ from core.i18n import t
 from core.wipe_engine import WipeResult, WipeStatus, WipeMode
 
 
-
 # ──────────────────────────────────────────────
-# Numérotation séquentielle
+# Sequential Report ID Generation
 # ──────────────────────────────────────────────
 
 def _get_next_report_id(script_dir: Path) -> str:
     """
-    Genere un identifiant unique base sur l horodatage : YYYYMMDDHHmm
-    Ex : 202603281902 — portable entre machines, sans fichier compteur.
+    Generates a unique timestamp-based identifier: YYYYMMDDHHmm
+    Example: 202603281902 — portable across platforms.
     """
     return datetime.now().strftime("%Y%m%d%H%M")
 
 
 # ──────────────────────────────────────────────
-# Génération QR code
+# QR Code Generation
 # ──────────────────────────────────────────────
 
 def _make_qr_image(content: str, tmp_dir: Path) -> Path:
-    """Génère un QR code PNG local et retourne son chemin."""
+    """Generates a local PNG QR code and returns its filesystem path."""
     qr = qrcode.QRCode(
         version=None,
         error_correction=qrcode.constants.ERROR_CORRECT_M,
@@ -97,11 +100,11 @@ def _make_qr_image(content: str, tmp_dir: Path) -> Path:
 
 
 # ──────────────────────────────────────────────
-# Filigrane + en-tête page (canvas overlay)
+# Watermark + Page Header/Footer (Canvas Overlay)
 # ──────────────────────────────────────────────
 
 class _CertCanvas(canvas.Canvas):
-    """Canvas personnalisé avec filigrane et en-tête sur chaque page."""
+    """Custom Canvas with diagonal watermark, header, and footer on each page."""
 
     def __init__(self, filename, report_id: str, **kwargs):
         super().__init__(filename, **kwargs)
@@ -123,14 +126,14 @@ class _CertCanvas(canvas.Canvas):
         super().save()
 
     def _draw_watermark(self):
-        """Filigrane diagonal semi-transparent."""
+        """Semi-transparent diagonal watermark."""
         self.saveState()
         self.setFont("Helvetica-Bold", 42)
         self.setFillColor(Color(0.7, 0.8, 0.9, alpha=0.08))
         w, h = A4
         self.translate(w / 2, h / 2)
         self.rotate(45)
-        text = "SECUREWIPE — CERTIFIÉ — DO NOT FALSIFY"
+        text = "SECUREWIPE — CERTIFIED — DO NOT FALSIFY"
         self.drawCentredString(0, 30, text)
         self.drawCentredString(0, -30, text)
         self.drawCentredString(0, 90, text)
@@ -138,7 +141,7 @@ class _CertCanvas(canvas.Canvas):
         self.restoreState()
 
     def _draw_header(self):
-        """Bande bleue en haut de chaque page."""
+        """Dark header bar at top of each page."""
         self.saveState()
         w, h = A4
         # Bande de fond
@@ -156,7 +159,7 @@ class _CertCanvas(canvas.Canvas):
         self.restoreState()
 
     def _draw_footer(self):
-        """Pied de page avec page number et ligne de séparation."""
+        """Footer with page numbers and horizontal separator line."""
         self.saveState()
         w, h = A4
         # Ligne
@@ -174,7 +177,7 @@ class _CertCanvas(canvas.Canvas):
 
 
 # ──────────────────────────────────────────────
-# Construction du contenu PDF
+# PDF Content Assembly
 # ──────────────────────────────────────────────
 
 def _styles():
@@ -227,7 +230,7 @@ def _styles():
 
 
 def _section_header(title: str, st: dict):
-    """Retourne un tableau stylisé pour les en-têtes de section."""
+    """Returns a styled table for section headers."""
     tbl = Table([[Paragraph(f"  {title}", st["section"])]], colWidths=[17*cm])
     tbl.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, -1), COLOR_SECTION),
@@ -243,7 +246,7 @@ import html
 
 def _info_table(rows: list[tuple], st: dict):
     """
-    Tableau à deux colonnes label/valeur.
+    Two-column label/value table.
     rows = [(label, value), ...]
     """
     data = [
@@ -265,7 +268,7 @@ def _info_table(rows: list[tuple], st: dict):
 
 
 # ──────────────────────────────────────────────
-# Données du rapport brut (pour SHA-256 + log)
+# Raw Report Data (for SHA-256 + Log)
 # ──────────────────────────────────────────────
 
 def _build_report_data(
@@ -276,7 +279,7 @@ def _build_report_data(
     mode_label: str,
     verify_pct: int,
 ) -> dict:
-    """Construit le dict de données du rapport (sérialisable JSON)."""
+    """Builds raw report data dictionary (JSON serializable)."""
     ts = operator["datetime"]
     tz = "UTC" if not hasattr(ts, "astimezone") else \
         ts.astimezone().strftime("%Z")
@@ -317,7 +320,7 @@ def _build_report_data(
 
 
 # ──────────────────────────────────────────────
-# Génération PDF principale
+# Primary PDF Generation
 # ──────────────────────────────────────────────
 
 def generate_certificate(
@@ -330,8 +333,8 @@ def generate_certificate(
     script_dir: Path,
 ) -> tuple[Path, Path]:
     """
-    Génère le certificat PDF et le log brut TXT.
-    Retourne (pdf_path, txt_path).
+    Generates the PDF Certificate and raw TXT log file.
+    Returns (pdf_path, txt_path).
     """
     report_id  = _get_next_report_id(script_dir)
     ts         = operator["datetime"]
@@ -343,10 +346,10 @@ def generate_certificate(
     pdf_path = output_dir / pdf_name
     txt_path = output_dir / txt_name
 
-    # ── Données du rapport ──
+    # ── Report Data ──
     report_data = _build_report_data(report_id, operator, disk, result, mode_label, verify_pct)
 
-    # ── SHA-256 du contenu ──
+    # ── SHA-256 Digest ──
     content_str = json.dumps(report_data, ensure_ascii=False, sort_keys=True)
     sha256 = hashlib.sha256(content_str.encode("utf-8")).hexdigest()
     report_data[t("report_sha256")] = sha256
@@ -374,20 +377,20 @@ def generate_certificate(
     # ── Styles ──
     st = _styles()
 
-    # ── Construction des éléments PDF ──
+    # ── PDF Elements Construction ──
     story = []
     w_page, h_page = A4
     margin = 1.5 * cm
 
-    # ── Bloc titre ──
+    # ── Title Block ──
     result_ok = result.status == WipeStatus.SUCCESS
 
-    # Chemin du logo (relatif au script)
+    # Logo Path
     logo_path = script_dir / "cert" / "template" / "logo.png"
 
     from reportlab.platypus import Image as RLImage
 
-    # Logo + titre côte à côte sur fond sombre
+    # Logo + Title side-by-side
     logo_loaded = False
     if logo_path.exists():
         try:
@@ -416,7 +419,6 @@ def generate_certificate(
             logo_loaded = False
 
     if not logo_loaded:
-        # Fallback sans logo
         title_data = [[Paragraph(t("report_title_main"), st["title"])]]
 
         title_tbl = Table(title_data, colWidths=[17*cm])
@@ -437,7 +439,7 @@ def generate_certificate(
 
     story.append(Spacer(1, 0.2*cm))
 
-    # ── Résultat global ──
+    # ── Global Result ──
     res_style = st["result_ok"] if result_ok else st["result_fail"]
     res_text  = f"✓  {t('report_success')}" if result_ok else f"✗  {t('report_failure')}"
     res_color = COLOR_GREEN if result_ok else COLOR_RED
@@ -454,7 +456,7 @@ def generate_certificate(
     story.append(res_tbl)
     story.append(Spacer(1, 0.2*cm))
 
-    # ── Section CONTEXTE ──
+    # ── CONTEXT Section ──
     story.append(_section_header(t("report_section_context"), st))
     story.append(Spacer(1, 0.08*cm))
     ctx_rows = [
@@ -467,7 +469,7 @@ def generate_certificate(
     story.append(_info_table(ctx_rows, st))
     story.append(Spacer(1, 0.2*cm))
 
-    # ── Section SUPPORT ──
+    # ── MEDIA / SUPPORT Section ──
     story.append(_section_header(t("report_section_support"), st))
     story.append(Spacer(1, 0.08*cm))
     sup_rows = [
@@ -481,7 +483,7 @@ def generate_certificate(
     story.append(_info_table(sup_rows, st))
     story.append(Spacer(1, 0.2*cm))
 
-    # ── Section MÉTHODE ──
+    # ── METHOD Section ──
     story.append(_section_header(t("report_section_method"), st))
     story.append(Spacer(1, 0.08*cm))
     meth_rows = [
@@ -495,11 +497,10 @@ def generate_certificate(
     story.append(_info_table(meth_rows, st))
     story.append(Spacer(1, 0.2*cm))
 
-    # ── Section INTÉGRITÉ + QR code ──
+    # ── INTEGRITY Section + QR Code ──
     story.append(_section_header(t("report_section_integrity"), st))
     story.append(Spacer(1, 0.08*cm))
 
-    # Tableau SHA-256 + QR côte à côte
     sha_para = Paragraph(
         f"<b>{t('report_sha256')} :</b>",
         st["label"]
@@ -532,17 +533,17 @@ def generate_certificate(
     story.append(integ_tbl)
     story.append(Spacer(1, 0.2*cm))
 
-    # ── Note de bas de document ──
+    # ── Footer Certification Note ──
     cert_text = t("report_certified")
     story.append(HRFlowable(width="100%", thickness=1, color=COLOR_BORDER))
     story.append(Spacer(1, 0.2*cm))
     story.append(Paragraph(cert_text, st["footer_note"]))
     story.append(Paragraph(
-        f"Généré par SecureWipe v2.0.0 — {ts.strftime('%Y-%m-%d %H:%M:%S')}",
+        f"Generated by SecureWipe v2.0.0 — {ts.strftime('%Y-%m-%d %H:%M:%S')}",
         st["footer_note"],
     ))
 
-    # ── Génération PDF ──
+    # ── Render PDF ──
     def make_canvas(filename, **kw):
         return _CertCanvas(filename, report_id=report_id, **kw)
 
@@ -555,7 +556,7 @@ def generate_certificate(
         bottomMargin=1.8*cm,
         title=f"SecureWipe — {t('report_title_main')} — {report_id}",
         author="SecureWipe Engine",
-        subject=f"Effacement sécurisé {disk.serial}",
+        subject=f"Secure Sanitization {disk.serial}",
         creator="SecureWipe v2.0.0",
     )
     doc.build(story, canvasmaker=make_canvas)
@@ -566,7 +567,7 @@ def generate_certificate(
     except Exception as e:
         print(f"Blockchain anchoring warning: {e}")
 
-    # ── Nettoyage temp ──
+    # ── Temp Cleanup ──
     try:
         import shutil
         shutil.rmtree(str(tmp_dir))
@@ -580,7 +581,7 @@ def generate_certificate(
 
 
 # ──────────────────────────────────────────────
-# Log brut TXT
+# Raw TXT Log
 # ──────────────────────────────────────────────
 
 def _write_log_txt(
@@ -589,12 +590,12 @@ def _write_log_txt(
     sha256: str,
     result: WipeResult,
 ) -> None:
-    """Écrit le log brut en texte clair."""
+    """Writes raw sanitization log in plaintext format."""
     separator = "=" * 72
 
     lines = [
         separator,
-        "  SECUREWIPE — JOURNAL D'EFFACEMENT SÉCURISÉ",
+        "  SECUREWIPE — SANITIZATION AUDIT LOG",
         separator,
         "",
     ]
@@ -607,13 +608,14 @@ def _write_log_txt(
     lines += [
         "",
         separator,
-        f"  SHA-256 certificat : {sha256}",
+        f"  Certificate SHA-256: {sha256}",
         separator,
         "",
     ]
 
     if result.error_msg:
-        lines.append(f"  ERREUR : {result.error_msg}")
+        lines.append(f"  ERROR: {result.error_msg}")
         lines.append("")
 
     path.write_text("\n".join(lines), encoding="utf-8")
+
