@@ -382,5 +382,17 @@
     "block_hash": "427ce324e35a809edae4eab22c683401a51e23e854e337c634fb56f32fbc7f8b",
     "cert_pdf_hash": "e776c11cbdb9086bf20e0021977f5bd278f4977232be6dbde2b1d60d4301939e",
     "index": 31
+  },
+  {
+    "timestamp": 1787499008.829878,
+    "meta_hash": "b4ad2c73a2eeb8a752029a39b70ce7b3333a91f5b9664d9721b04f5fa51eebd8",
+    "prev_hash": "427ce324e35a809edae4eab22c683401a51e23e854e337c634fb56f32fbc7f8b",
+    "device": "[MOCK] \\\\.\\PhysicalDrive0",
+    "serial": "S5YXNX0T981209",
+    "method": "ANSSI Palier 1 (1-pass zeros)",
+    "confidence_score": 100,
+    "block_hash": "45a2c1f57a4ec6950f8e91a3d0a23805f31a7dd0b8c5acec05a7a2bf754e7b68",
+    "cert_pdf_hash": "fc9dc8ace71221e5f64e01b9a201af1ef28b11ac5cfc1608fd53a95b4bb976f7",
+    "index": 32
   }
 ]
