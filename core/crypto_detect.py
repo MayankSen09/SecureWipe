@@ -1,10 +1,9 @@
 """
 SecureWipe — crypto_detect.py
-Analyse du chiffrement détecté et recommandation de la méthode
-d'effacement cryptographique appropriée.
+Encryption detection and cryptographic sanitization method recommendations.
 
-Ce module est cross-platform : il reçoit un DiskInfo (Linux ou Windows)
-et retourne un CryptoProfile décrivant ce qu'il faut faire.
+Cross-platform module: takes a DiskInfo object (Linux or Windows)
+and returns a CryptoProfile detailing appropriate execution steps.
 """
 
 import re
@@ -16,38 +15,39 @@ from enum import Enum, auto
 from typing import Optional
 
 # ──────────────────────────────────────────────
-# Énumérations
+# Enumerations
 # ──────────────────────────────────────────────
 
 class CryptoMethod(Enum):
-    """Méthode d'effacement cryptographique recommandée."""
-    NONE             = auto()   # Pas de chiffrement → pas de crypto erase
+    """Recommended cryptographic erasure method."""
+    NONE             = auto()   # No encryption detected → bypass crypto erase
     LUKS_ERASE       = auto()   # cryptsetup erase (LUKS1/2)
     SED_ATA          = auto()   # hdparm ATA Secure Erase (SED SATA)
     SED_NVME         = auto()   # nvme format --ses=1 (SED NVMe)
-    BITLOCKER_OFF    = auto()   # manage-bde -off puis format
-    BITLOCKER_KEY    = auto()   # Suppression clé BitLocker (si accès recovery key)
+    BITLOCKER_OFF    = auto()   # manage-bde -off followed by format
+    BITLOCKER_KEY    = auto()   # BitLocker key deletion (if recovery key access available)
 
 
 class SedStatus(Enum):
-    """État du verrou SED (ATA Security Feature Set)."""
+    """SED Lock Status (ATA Security Feature Set)."""
     NOT_SUPPORTED = auto()
-    FROZEN        = auto()   # Frozen = impossible d'envoyer Secure Erase sans reboot
+    FROZEN        = auto()   # Frozen = unable to send Secure Erase without reboot
     LOCKED        = auto()
-    ENABLED       = auto()   # Prêt pour Secure Erase
-    NOT_ENABLED   = auto()   # SED présent mais pas activé
+    ENABLED       = auto()   # Ready for Secure Erase
+    NOT_ENABLED   = auto()   # SED present but not activated
 
 
 # ──────────────────────────────────────────────
-# Structure résultat
+# Result Structure
 # ──────────────────────────────────────────────
 
 @dataclass
 class CryptoProfile:
     """
-    Résultat complet de l'analyse cryptographique d'un disque.
-    Transmis au wipe_engine pour exécuter la bonne méthode.
+    Complete cryptographic analysis result for a storage device.
+    Passed to wipe_engine for method execution.
     """
+
     # Y a-t-il une option de crypto erase disponible ?
     has_crypto_option: bool = False
 
@@ -101,21 +101,21 @@ def _tool_ok(name: str) -> bool:
 
 
 # ──────────────────────────────────────────────
-# Analyse LUKS (Linux)
+# LUKS Analysis (Linux)
 # ──────────────────────────────────────────────
 
 def _analyse_luks(device: str) -> tuple[str, str, str, str]:
     """
-    Retourne (luks_version, luks_device, luks_cipher, warning).
-    Utilise cryptsetup luksDump pour obtenir les détails.
+    Returns (luks_version, luks_device, luks_cipher, warning).
+    Uses cryptsetup luksDump to retrieve partition details.
     """
-    # Cherche la partition LUKS sur ce disque via blkid
+    # Find LUKS partition on this disk via blkid
     luks_device = ""
     rc, out, _ = _run(["blkid", "-t", "TYPE=crypto_LUKS", "-o", "device"])
     if rc == 0 and out:
         for line in out.splitlines():
             line = line.strip()
-            # Garde les partitions de ce disque (ex: /dev/sda → /dev/sda1, /dev/sda2)
+            # Retain partitions belonging to this disk (e.g. /dev/sda → /dev/sda1)
             dev_base = device.rstrip("0123456789").replace("n1", "")  # nvme0n1 → /dev/nvme0
             if line.startswith(device) or line.startswith(dev_base):
                 luks_device = line
@@ -124,9 +124,9 @@ def _analyse_luks(device: str) -> tuple[str, str, str, str]:
             luks_device = out.splitlines()[0].strip()
 
     if not luks_device:
-        luks_device = device  # fallback sur le disque entier
+        luks_device = device  # fallback to whole disk
 
-    # luksDump pour les détails
+    # luksDump for metadata details
     luks_version = "LUKS"
     luks_cipher  = "aes-xts-plain64"
     warning      = ""
@@ -141,21 +141,21 @@ def _analyse_luks(device: str) -> tuple[str, str, str, str]:
             if c:
                 luks_cipher = c.group(1)
         else:
-            warning = "cryptsetup luksDump a échoué — le disque sera quand même effacé via luksErase."
+            warning = "cryptsetup luksDump failed — drive will still be wiped via luksErase."
     else:
-        warning = "cryptsetup non installé — l'effacement LUKS sera effectué via dd sur la partition."
+        warning = "cryptsetup not installed — LUKS wiping will fallback to dd overwrite."
 
     return luks_version, luks_device, luks_cipher, warning
 
 
 # ──────────────────────────────────────────────
-# Analyse SED / ATA Security (Linux)
+# SED / ATA Security Analysis (Linux)
 # ──────────────────────────────────────────────
 
 def _analyse_sed_linux(device: str) -> tuple[SedStatus, bool, int]:
     """
-    Analyse l'état ATA Security via hdparm -I.
-    Retourne (status, enhanced_available, erase_time_min).
+    Analyzes ATA Security status via hdparm -I.
+    Returns (status, enhanced_available, erase_time_min).
     """
     if not _tool_ok("hdparm"):
         return SedStatus.NOT_SUPPORTED, False, 2
@@ -164,7 +164,6 @@ def _analyse_sed_linux(device: str) -> tuple[SedStatus, bool, int]:
     if rc != 0:
         return SedStatus.NOT_SUPPORTED, False, 2
 
-    # Section Security dans la sortie hdparm
     in_security = False
     supported    = False
     enabled      = False
@@ -179,14 +178,12 @@ def _analyse_sed_linux(device: str) -> tuple[SedStatus, bool, int]:
             continue
         if not in_security:
             continue
-        # Fin de section : ligne non vide commençant en colonne 0 (pas d'indentation)
         if line and not line[0].isspace() and "Security" not in line:
             break
 
         l = line.lower().strip()
         if not l:
             continue
-        # On détecte la négation "not X" pour ne pas inverser le sens
         is_negated = l.startswith("not")
         if "supported" in l and not is_negated:
             supported = True
@@ -198,7 +195,6 @@ def _analyse_sed_linux(device: str) -> tuple[SedStatus, bool, int]:
             locked = True
         if "enhanced erase" in l:
             enhanced = True
-        # Durée estimée : "2min for SECURITY ERASE UNIT"
         m = re.search(r'(\d+)min for security erase', l)
         if m:
             erase_min = int(m.group(1))
@@ -215,13 +211,13 @@ def _analyse_sed_linux(device: str) -> tuple[SedStatus, bool, int]:
 
 
 # ──────────────────────────────────────────────
-# Analyse BitLocker (Windows)
+# BitLocker Analysis (Windows)
 # ──────────────────────────────────────────────
 
 def _analyse_bitlocker_windows(drive_letters: list) -> tuple[list, int, str]:
     """
-    Analyse l'état BitLocker sur les lettres de lecteur du disque.
-    Retourne (encrypted_drives, pct_encrypted, warning).
+    Analyzes BitLocker status on associated drive letters.
+    Returns (encrypted_drives, pct_encrypted, warning).
     """
     encrypted = []
     pct_total = 0
@@ -231,61 +227,54 @@ def _analyse_bitlocker_windows(drive_letters: list) -> tuple[list, int, str]:
         rc, out, _ = _run(["manage-bde", "-status", letter], timeout=8)
         if rc != 0:
             continue
-        # Protection Status
         ps = re.search(r'Protection Status:\s+(.+)', out)
         if ps and "on" in ps.group(1).lower():
             encrypted.append(letter)
-        # % chiffré
         pct = re.search(r'Percentage Encrypted:\s+([\d.]+)%', out)
         if pct:
             pct_total = max(pct_total, int(float(pct.group(1))))
 
     if not encrypted:
-        warning = "manage-bde indique que BitLocker n'est pas actif sur ce disque."
+        warning = "manage-bde indicates BitLocker is inactive on this drive."
 
     return encrypted, pct_total, warning
 
 
 # ──────────────────────────────────────────────
-# Analyse NVMe Secure Erase
+# NVMe Secure Erase Analysis
 # ──────────────────────────────────────────────
 
 def _analyse_nvme(device: str) -> tuple[bool, str]:
     """
-    Vérifie si nvme-cli est disponible et si le format NVMe est supporté.
-    Retourne (supported, warning).
+    Checks if nvme-cli is present and NVMe Format Command is supported.
+    Returns (supported, warning).
     """
     if not _tool_ok("nvme"):
-        return False, "nvme-cli non installé. Installer avec : apt install nvme-cli"
+        return False, "nvme-cli not installed. Install with: apt install nvme-cli"
 
-    # nvme id-ctrl pour vérifier le support du Format NVM Command
     rc, out, _ = _run(["nvme", "id-ctrl", device, "--output-format=normal"], timeout=6)
     if rc != 0:
-        return True, ""  # On suppose supporté si on peut pas vérifier
+        return True, ""
 
-    # Vérifie fna (Format NVM Attributes) — bit 2 = supports crypto erase
     fna = re.search(r'fna\s*:\s*(0x[0-9a-fA-F]+|\d+)', out)
     if fna:
         val = int(fna.group(1), 16) if fna.group(1).startswith("0x") else int(fna.group(1))
-        if val & 0x4:  # bit 2 = Cryptographic Erase supported
+        if val & 0x4:
             return True, ""
         else:
-            return True, "Le contrôleur NVMe supporte Format mais pas nécessairement Crypto Erase (fna bit 2 = 0). L'effacement sera quand même effectué."
+            return True, "NVMe controller supports Format command but may lack native Crypto Erase (fna bit 2 = 0). Wiping will proceed."
 
     return True, ""
 
 
 # ──────────────────────────────────────────────
-# Fonction principale
+# Main Function
 # ──────────────────────────────────────────────
 
 def analyse_disk_crypto(disk) -> CryptoProfile:
     """
-    Analyse le chiffrement d'un DiskInfo (Linux ou Windows).
-    Retourne un CryptoProfile avec la méthode recommandée et les détails.
-
-    Compatile avec disk_linux.DiskInfo et disk_windows.DiskInfo
-    grâce à l'interface commune.
+    Analyzes encryption status for DiskInfo (Linux or Windows).
+    Returns a CryptoProfile detailing recommended method and flags.
     """
     profile = CryptoProfile()
 
@@ -298,7 +287,7 @@ def analyse_disk_crypto(disk) -> CryptoProfile:
     is_linux   = sys.platform != "win32"
     is_windows = sys.platform == "win32"
 
-    # ── Cas 1 : LUKS (Linux) ──────────────────
+    # ── Case 1: LUKS (Linux) ──────────────────
     if enc == "luks" and is_linux:
         luks_v, luks_dev, luks_cipher, warn = _analyse_luks(device)
         profile.has_crypto_option    = True
@@ -308,14 +297,14 @@ def analyse_disk_crypto(disk) -> CryptoProfile:
         profile.luks_cipher          = luks_cipher
         profile.display_name         = f"Crypto Erase — {luks_v}"
         profile.display_desc         = (
-            f"Destruction de la clé maître {luks_v} ({luks_cipher}). "
-            "Les données deviennent inaccessibles instantanément."
+            f"Destruction of master key {luks_v} ({luks_cipher}). "
+            "Data instantly rendered unrecoverable."
         )
         if warn:
             profile.warnings.append(warn)
         return profile
 
-    # ── Cas 2 : SED (Linux, SATA) ─────────────
+    # ── Case 2: SED (Linux, SATA) ─────────────
     if enc == "sed" and is_linux and dtype in ("hdd", "ssd"):
         status, enhanced, erase_min = _analyse_sed_linux(device)
 
@@ -326,13 +315,12 @@ def analyse_disk_crypto(disk) -> CryptoProfile:
             profile.sed_enhanced  = enhanced
             profile.sed_time_min  = erase_min
             profile.warnings.append(
-                "⚠ Le disque SED est en état 'frozen' (verrouillé par le BIOS/UEFI).\n"
-                "  → Débranchez et rebranchez le disque à chaud (hot-plug SATA),\n"
-                "    ou redémarrez depuis un LiveUSB sans suspension SED,\n"
-                "    puis relancez SecureWipe."
+                "⚠ SED drive is in 'frozen' state (locked by BIOS/UEFI).\n"
+                "  → Hot-plug SATA drive or reboot without SED freeze lock,\n"
+                "    then re-run SecureWipe."
             )
             profile.display_name = "Crypto Erase — SED ATA (⚠ frozen)"
-            profile.display_desc = "ATA Secure Erase disponible après déblocage du frozen."
+            profile.display_desc = "ATA Secure Erase available after unfreezing."
 
         elif status in (SedStatus.ENABLED, SedStatus.NOT_ENABLED, SedStatus.LOCKED):
             profile.has_crypto_option  = True
@@ -342,63 +330,55 @@ def analyse_disk_crypto(disk) -> CryptoProfile:
             profile.sed_time_min  = erase_min
             profile.display_name  = "Crypto Erase — SED ATA Secure Erase"
             profile.display_desc  = (
-                f"Commande ATA Secure Erase{'Enhanced' if enhanced else ''}. "
-                f"Durée estimée : {erase_min} min."
+                f"ATA Secure Erase{' Enhanced' if enhanced else ''} command. "
+                f"Estimated duration: {erase_min} min."
             )
         else:
-            # SED non supporté finalement
             profile.has_crypto_option = False
             profile.recommended_method = CryptoMethod.NONE
 
         return profile
 
-    # ── Cas 3 : SED NVMe (Linux) ──────────────
+    # ── Case 3: SED NVMe (Linux) ──────────────
     if enc == "sed" and is_linux and dtype == "nvme":
         supported, warn = _analyse_nvme(device)
         profile.has_crypto_option  = supported
         profile.recommended_method = CryptoMethod.SED_NVME if supported else CryptoMethod.NONE
         profile.display_name       = "Crypto Erase — NVMe Format (--ses=1)"
-        profile.display_desc       = "nvme format avec Cryptographic Erase. Données inaccessibles instantanément."
+        profile.display_desc       = "NVMe format with Cryptographic Erase. Data rendered unrecoverable."
         if warn:
             profile.warnings.append(warn)
         return profile
 
-    # ── Cas 4 : BitLocker (Windows) ───────────
+    # ── Case 4: BitLocker (Windows) ───────────
     if enc == "bitlocker" and is_windows:
         enc_drives, pct, warn = _analyse_bitlocker_windows(letters)
         profile.has_crypto_option    = True
         profile.recommended_method   = CryptoMethod.BITLOCKER_OFF
         profile.bitlocker_drives     = enc_drives or letters
         profile.bitlocker_pct        = pct
-        profile.display_name         = "Crypto Erase — Désactivation BitLocker"
+        profile.display_name         = "Crypto Erase — BitLocker Deactivation"
         profile.display_desc         = (
-            f"Désactive BitLocker ({pct}% chiffré) puis formate le disque. "
-            "Clé AES détruite, données inaccessibles."
+            f"Deactivates BitLocker ({pct}% encrypted) then formats drive. "
+            "AES key purged, data unrecoverable."
         )
         if warn:
             profile.warnings.append(warn)
         return profile
 
-    # ── Cas 5 : Aucun chiffrement ─────────────
+    # ── Case 5: No Encryption ─────────────────
     profile.has_crypto_option  = False
     profile.recommended_method = CryptoMethod.NONE
     return profile
 
 
 # ──────────────────────────────────────────────
-# Résumé lisible pour l'UI
+# Display Summary
 # ──────────────────────────────────────────────
 
-def crypto_summary(profile: CryptoProfile, lang: str = "fr") -> dict:
+def crypto_summary(profile: CryptoProfile, lang: str = "en") -> dict:
     """
-    Retourne un dict prêt pour l'affichage dans le menu wipe_mode.
-    {
-        'available': bool,
-        'name': str,
-        'desc': str,
-        'warnings': list[str],
-        'method': CryptoMethod,
-    }
+    Returns a dict formatted for UI display in wipe_mode selection.
     """
     return {
         "available": profile.has_crypto_option,
@@ -408,3 +388,4 @@ def crypto_summary(profile: CryptoProfile, lang: str = "fr") -> dict:
         "method":    profile.recommended_method,
         "profile":   profile,
     }
+

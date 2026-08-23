@@ -103,8 +103,7 @@ def _run_ps(script: str, timeout: int = 15) -> tuple[int, str, str]:
     Enforces UTF-8 encoding for special characters.
     """
 
-    # On passe le script via un fichier temp pour éviter les problèmes
-    # d'échappement en ligne de commande
+    # Pass script via a temporary file to avoid command-line escaping issues
     with tempfile.NamedTemporaryFile(
         mode="w", suffix=".ps1", delete=False, encoding="utf-8"
     ) as f:
@@ -129,7 +128,7 @@ def _run_ps(script: str, timeout: int = 15) -> tuple[int, str, str]:
         )
         return r.returncode, r.stdout.strip(), r.stderr.strip()
     except FileNotFoundError:
-        # PowerShell non disponible — tente pwsh (PowerShell Core)
+        # PowerShell unavailable — fallback to pwsh (PowerShell Core)
         try:
             r = subprocess.run(
                 ["pwsh", "-NonInteractive", "-NoProfile",
@@ -152,7 +151,7 @@ def _run_ps(script: str, timeout: int = 15) -> tuple[int, str, str]:
 
 
 def _run_cmd(cmd: list[str], timeout: int = 10) -> tuple[int, str, str]:
-    """Exécute une commande cmd.exe standard."""
+    """Executes a standard cmd.exe command."""
     try:
         r = subprocess.run(
             cmd, capture_output=True, timeout=timeout,
@@ -168,16 +167,16 @@ def _run_cmd(cmd: list[str], timeout: int = 10) -> tuple[int, str, str]:
 
 
 # ──────────────────────────────────────────────
-# Script PowerShell principal
+# Main PowerShell Script
 # ──────────────────────────────────────────────
 
 _PS_MAIN_SCRIPT = r"""
 $ErrorActionPreference = 'SilentlyContinue'
 
-# Disque systeme (ex: "C")
+# System drive (e.g. "C")
 $sysDrive = ($env:SystemDrive).TrimEnd('\').TrimEnd(':')
 
-# Lettres de lecteur par numéro de disque
+# Drive letters grouped by disk number
 $diskLetters = @{}
 try {
     Get-Partition | Where-Object { $_.DriveLetter -and $_.DriveLetter -ne '' } | ForEach-Object {
@@ -188,7 +187,7 @@ try {
     }
 } catch {}
 
-# Récupération des disques physiques
+# Retrieve physical disks
 $disks = @()
 try {
     $physDisks = Get-PhysicalDisk
@@ -199,17 +198,17 @@ try {
 foreach ($pd in $physDisks) {
     $devId = $pd.DeviceId.ToString().Trim()
 
-    # Lettres associées
+    # Associated drive letters
     $letters = @()
     if ($diskLetters[$devId]) { $letters = $diskLetters[$devId].ToArray() }
 
-    # Disque système ?
+    # Is system disk?
     $isSystem = $false
     foreach ($l in $letters) {
         if ($l.TrimEnd(':') -eq $sysDrive) { $isSystem = $true; break }
     }
 
-    # BitLocker
+    # BitLocker status
     $encType = 'none'
     foreach ($letter in $letters) {
         try {
@@ -218,17 +217,17 @@ foreach ($pd in $physDisks) {
         } catch {}
     }
 
-    # Numéro de série — nettoyage
+    # Serial number sanitization
     $serial = 'N/A'
     if ($pd.SerialNumber -and $pd.SerialNumber.Trim() -ne '') {
         $serial = $pd.SerialNumber.Trim()
     }
 
-    # Firmware
+    # Firmware version
     $fw = ''
     if ($pd.FirmwareVersion) { $fw = $pd.FirmwareVersion.Trim() }
 
-    # Enrichissement BusType via Get-Disk (plus fiable pour NVMe et USB)
+    # BusType enrichment via Get-Disk
     $gdBusType = [int]$pd.BusType
     $isRemovable = $false
     try {
@@ -259,7 +258,7 @@ foreach ($pd in $physDisks) {
 if ($disks.Count -gt 0) {
     $disks | ConvertTo-Json -Depth 3 -Compress
 } else {
-    # Fallback WMI si Get-PhysicalDisk a échoué
+    # WMI fallback if Get-PhysicalDisk failed
     $wmiDisks = Get-WmiObject -Class Win32_DiskDrive
     $fallback = @()
     foreach ($wd in $wmiDisks) {
@@ -277,7 +276,7 @@ if ($disks.Count -gt 0) {
                 if ($bde -match 'Protection On') { $encType = 'bitlocker'; break }
             } catch {}
         }
-        # MediaType WMI : "Fixed hard disk" -> 3 (HDD), détecte SSD via nom
+        # WMI MediaType: "Fixed hard disk" -> 3 (HDD), detect SSD via name
         $mt = 3
         if ($wd.Model -match 'SSD|Solid') { $mt = 4 }
         if ($wd.Model -match 'NVMe|NVM') { $mt = 4 }
@@ -305,7 +304,7 @@ if ($disks.Count -gt 0) {
 # ──────────────────────────────────────────────
 
 def _bytes_to_human(n: int) -> str:
-    """Identique à disk_linux — copie locale pour éviter les imports croisés."""
+    """Same as disk_linux — local copy to prevent cross imports."""
     if n <= 0:
         return "? GiB"
     orig = n
@@ -318,22 +317,20 @@ def _bytes_to_human(n: int) -> str:
 
 def _detect_type(media_type: int, bus_type: int, model: str) -> str:
     """
-    Détermine HDD / SSD / NVMe.
-    Priorité : BusType NVMe > nom modèle > MediaType > heuristique nom.
-    Note : certains pilotes Windows retournent MediaType=0 ou MediaType=3
-    même pour des NVMe (bug connu sur Micron, Samsung, WD NVMe).
+    Determines HDD / SSD / NVMe.
+    Priority: BusType NVMe > model name > MediaType > name heuristics.
     """
     model_upper = model.upper()
 
-    # 1. BusType 17 = NVMe sans ambiguïté
+    # 1. BusType 17 = NVMe
     if bus_type == 17:
         return DISK_TYPE_NVME
 
-    # 2. Mots-clés NVMe dans le nom du modèle
+    # 2. NVMe keywords in model name
     if re.search(r'NVME|NVM EXPRESS|M\.2|PCIE|PCIe', model_upper):
         return DISK_TYPE_NVME
 
-    # 3. Marques connues NVMe (Micron, Samsung 980/970/990, WD SN, etc.)
+    # 3. Known NVMe brands
     if re.search(r'MICRON.*(MTFD|2200|2400|3400)', model_upper):
         return DISK_TYPE_NVME
     if re.search(r'SAMSUNG.*(9[678]0|MZV|MZAL)', model_upper):
@@ -347,10 +344,10 @@ def _detect_type(media_type: int, bus_type: int, model: str) -> str:
     if re.search(r'INTEL.*SSD.*[67][0-9]{2}P', model_upper):
         return DISK_TYPE_NVME
 
-    # 4. MediaType Windows
+    # 4. Windows MediaType
     t = MEDIA_TYPE.get(media_type, DISK_TYPE_UNK)
 
-    # 5. Heuristique sur le nom si MediaType inconnu
+    # 5. Name heuristics if MediaType unknown
     if t == DISK_TYPE_UNK:
         if re.search(r'\bSSD\b|SOLID.STATE', model_upper):
             return DISK_TYPE_SSD
@@ -361,13 +358,12 @@ def _detect_type(media_type: int, bus_type: int, model: str) -> str:
 
 
 def _parse_ps_output(raw_json: str) -> list[DiskInfo]:
-    """Parse la sortie JSON de PowerShell en liste de DiskInfo."""
+    """Parses PowerShell JSON output into a list of DiskInfo."""
     try:
         data = json.loads(raw_json)
     except json.JSONDecodeError:
         return []
 
-    # PowerShell retourne un objet seul si 1 seul disque (pas une liste)
     if isinstance(data, dict):
         data = [data]
 
@@ -406,7 +402,7 @@ def _parse_ps_output(raw_json: str) -> list[DiskInfo]:
             firmware     = fw,
             drive_letters= letters,
             device_id    = dev_id,
-            mountpoints  = letters,   # alias pour compat avec ui.py
+            mountpoints  = letters,
         )
         disks.append(disk)
 
@@ -415,11 +411,11 @@ def _parse_ps_output(raw_json: str) -> list[DiskInfo]:
 
 
 # ──────────────────────────────────────────────
-# Vérification outils
+# Tools Verification
 # ──────────────────────────────────────────────
 
 def check_windows_tools() -> dict[str, bool]:
-    """Vérifie la disponibilité des outils nécessaires sous Windows."""
+    """Verifies availability of required tools on Windows."""
 
     def _ps_cmd_ok(cmd: str) -> bool:
         rc, out, _ = _run_ps(f"try {{ {cmd} | Out-Null; Write-Output 'ok' }} catch {{ Write-Output 'fail' }}")
@@ -440,23 +436,19 @@ def check_windows_tools() -> dict[str, bool]:
 
 
 # ──────────────────────────────────────────────
-# Fonction principale
+# Main Function
 # ──────────────────────────────────────────────
 
 def list_disks() -> list[DiskInfo]:
     """
-    Détecte tous les disques physiques sous Windows.
-    Retourne une liste de DiskInfo.
+    Detects all physical storage devices on Windows.
+    Returns a list of DiskInfo.
     """
     rc, out, err = _run_ps(_PS_MAIN_SCRIPT, timeout=20)
 
     if rc != 0 or not out.strip():
-        # Rien récupéré — retourne liste vide
-        # (l'appelant gérera le cas "aucun disque")
         return []
 
-    # PowerShell peut émettre des messages avant le JSON
-    # On extrait la première ligne qui ressemble à du JSON
     json_line = ""
     for line in out.splitlines():
         line = line.strip()
@@ -471,13 +463,12 @@ def list_disks() -> list[DiskInfo]:
 
 
 # ──────────────────────────────────────────────
-# Numéro de disque physique depuis une lettre
+# Disk Number from Drive Letter
 # ──────────────────────────────────────────────
 
 def get_disk_number_for_letter(letter: str) -> Optional[str]:
     """
-    Retourne le numéro de disque physique (ex: '0') correspondant
-    à une lettre de lecteur (ex: 'C:'). Utile pour diskpart.
+    Returns physical disk number (e.g. '0') for a drive letter (e.g. 'C:').
     """
     script = f"""
 $part = Get-Partition | Where-Object {{ $_.DriveLetter -eq '{letter.rstrip(':')[0]}' }}
@@ -488,14 +479,14 @@ if ($part) {{ Write-Output $part.DiskNumber }} else {{ Write-Output '' }}
 
 
 # ──────────────────────────────────────────────
-# Mock pour tests
+# Mock for testing
 # ──────────────────────────────────────────────
 
 def _mock_disks() -> list[DiskInfo]:
     """
-    Disques fictifs réalistes pour tests hors Windows.
-    Même structure que list_disks().
+    Realistic mock disks for testing outside Windows.
     """
+
     return [
         DiskInfo(
             device=r"[MOCK] \\.\PhysicalDrive0",

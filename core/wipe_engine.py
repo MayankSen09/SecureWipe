@@ -1,26 +1,27 @@
 """
 SecureWipe — wipe_engine.py
-Moteur d'effacement sécurisé.
+Secure Data Sanitization Engine.
 
-Méthodes implémentées :
-  Linux :
-    - ANSSI P1 : dd avec /dev/zero (1 passe)
-    - ANSSI P2 / NIST Clear : dd avec /dev/urandom (1 passe aléatoire)
-    - NIST Purge HDD : ATA Secure Erase via hdparm
-    - NIST Purge SSD/NVMe : nvme format --ses=1
-    - Crypto Erase LUKS : cryptsetup erase
-    - Crypto Erase SED  : hdparm --security-erase
-    - Custom : N passes alternant zéros et aléatoire
-  Windows :
-    - ANSSI P1 / P2 : diskpart clean all (écriture zéros)
-    - NIST Purge SSD/NVMe : format /p:1 + Optimize-Volume (Trim)
-    - Crypto Erase BitLocker : manage-bde -off + diskpart clean all
-    - Custom : passes via diskpart
+Supported Methods:
+  Linux:
+    - ANSSI P1: dd with /dev/zero (1 pass)
+    - ANSSI P2 / NIST Clear: dd with /dev/urandom (1 random pass)
+    - NIST Purge HDD: ATA Secure Erase via hdparm
+    - NIST Purge SSD/NVMe: nvme format --ses=1
+    - Crypto Erase LUKS: cryptsetup erase
+    - Crypto Erase SED: hdparm --security-erase
+    - Custom: N passes alternating zeros and random patterns
+  Windows:
+    - ANSSI P1 / P2: diskpart clean all (zero overwrite)
+    - NIST Purge SSD/NVMe: format /p:1 + Optimize-Volume (Trim)
+    - Crypto Erase BitLocker: manage-bde -off + diskpart clean all
+    - Custom: passes via diskpart
 
-Vérification post-effacement :
-  Lecture d'un échantillon aléatoire de secteurs et vérification
-  que le contenu correspond au motif attendu (zéros ou aléatoire).
+Post-Wipe Verification:
+  Reads a random sector sample and verifies that content matches
+  expected byte patterns (zeros or random).
 """
+
 
 import os
 import sys

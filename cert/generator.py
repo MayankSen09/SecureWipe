@@ -22,41 +22,47 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.units import cm, mm
-from reportlab.lib.colors import (
-    HexColor, white, black, Color,
-    lightgrey, grey, darkblue,
-)
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
-from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
-    HRFlowable, KeepTogether,
-)
-from reportlab.pdfgen import canvas
-from reportlab.platypus import BaseDocTemplate, Frame, PageTemplate
-import qrcode
-import qrcode.image.pil
+try:
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.units import cm, mm
+    from reportlab.lib.colors import (
+        HexColor, white, black, Color,
+        lightgrey, grey, darkblue,
+    )
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
+    from reportlab.platypus import (
+        SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
+        HRFlowable, KeepTogether,
+    )
+    from reportlab.pdfgen import canvas
+    from reportlab.platypus import BaseDocTemplate, Frame, PageTemplate
+    import qrcode
+    import qrcode.image.pil
+
+    COLOR_DARK_BG   = HexColor("#0a0e1a")
+    COLOR_BLUE      = HexColor("#2a6abf")
+    COLOR_CYAN      = HexColor("#4a90d9")
+    COLOR_RED       = HexColor("#e74c3c")
+    COLOR_GREEN     = HexColor("#27ae60")
+    COLOR_LIGHT_BG  = HexColor("#f0f4f8")
+    COLOR_MID_GREY  = HexColor("#8090a0")
+    COLOR_TEXT      = HexColor("#1a1a2e")
+    COLOR_SECTION   = HexColor("#1a3a6a")
+    COLOR_ROW_ALT   = HexColor("#e8f0f8")
+    COLOR_BORDER    = HexColor("#2a5a9a")
+except (ImportError, Exception):
+    A4 = (595.27, 841.89)
+    cm = 28.3465
+    mm = 2.83465
+    white = black = lightgrey = grey = darkblue = None
+    COLOR_DARK_BG = COLOR_BLUE = COLOR_CYAN = COLOR_RED = COLOR_GREEN = None
+    COLOR_LIGHT_BG = COLOR_MID_GREY = COLOR_TEXT = COLOR_SECTION = COLOR_ROW_ALT = COLOR_BORDER = None
 
 from core.i18n import t
 from core.wipe_engine import WipeResult, WipeStatus, WipeMode
 
-# ──────────────────────────────────────────────
-# Couleurs SecureWipe
-# ──────────────────────────────────────────────
 
-COLOR_DARK_BG   = HexColor("#0a0e1a")
-COLOR_BLUE      = HexColor("#2a6abf")
-COLOR_CYAN      = HexColor("#4a90d9")
-COLOR_RED       = HexColor("#e74c3c")
-COLOR_GREEN     = HexColor("#27ae60")
-COLOR_LIGHT_BG  = HexColor("#f0f4f8")
-COLOR_MID_GREY  = HexColor("#8090a0")
-COLOR_TEXT      = HexColor("#1a1a2e")
-COLOR_SECTION   = HexColor("#1a3a6a")
-COLOR_ROW_ALT   = HexColor("#e8f0f8")
-COLOR_BORDER    = HexColor("#2a5a9a")
 
 # ──────────────────────────────────────────────
 # Numérotation séquentielle
