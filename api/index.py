@@ -1,5 +1,5 @@
+import os
 import sys
-import traceback
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -9,12 +9,14 @@ if str(BASE_DIR) not in sys.path:
 try:
     from api.app import app
 except Exception as e:
+    import traceback
     from fastapi import FastAPI
-    from fastapi.responses import JSONResponse
+    from fastapi.responses import HTMLResponse
 
     app = FastAPI()
-    err_str = traceback.format_exc()
+    err_msg = str(e)
+    tb_msg = traceback.format_exc()
 
-    @app.api_route("/{full_path:path}", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"])
+    @app.get("/{full_path:path}")
     def catch_all(full_path: str = ""):
-        return JSONResponse(status_code=500, content={"error": str(e), "traceback": err_str})
+        return HTMLResponse(f"<h1>Startup Error</h1><p>{err_msg}</p><pre>{tb_msg}</pre>", status_code=500)
