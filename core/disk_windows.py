@@ -1,15 +1,15 @@
 """
 SecureWipe — disk_windows.py
-Détection et analyse des disques sous Windows.
+Windows Storage Device Detection and Analysis.
 
-Approche :
-  - Get-PhysicalDisk (PowerShell/Storage module) → infos disque
-  - Get-Partition + Get-Volume → lettres de lecteurs
-  - manage-bde -status → détection BitLocker
-  - WMI Win32_DiskDrive → fallback si Storage module indisponible
-  - diskpart → dernier recours (Windows XP/Server 2008 anciens)
+Approach:
+  - Get-PhysicalDisk (PowerShell/Storage module) → disk metadata
+  - Get-Partition + Get-Volume → drive letter mapping
+  - manage-bde -status → BitLocker encryption detection
+  - WMI Win32_DiskDrive → fallback if Storage module is unavailable
+  - diskpart → fallback for legacy platforms
 
-Privilèges requis : Administrateur local (UAC élevé)
+Required Privileges: Local Administrator (Elevated UAC)
 """
 
 import json
@@ -24,7 +24,7 @@ from typing import Optional
 from core.i18n import t
 
 # ──────────────────────────────────────────────
-# Constantes Windows
+# Windows Constants
 # ──────────────────────────────────────────────
 
 # MSFT_PhysicalDisk.MediaType
@@ -32,7 +32,7 @@ MEDIA_TYPE = {
     0: "unknown",
     3: "hdd",    # HDD
     4: "ssd",    # SSD
-    5: "ssd",    # SCM (Storage Class Memory) → traité comme SSD
+    5: "ssd",    # SCM (Storage Class Memory) → treated as SSD
 }
 
 # MSFT_PhysicalDisk.BusType
@@ -66,14 +66,14 @@ ENC_BITLOCKER  = "bitlocker"
 ENC_SED        = "sed"
 
 # ──────────────────────────────────────────────
-# Structure de données (même interface que disk_linux)
+# Data Structure (same interface as disk_linux)
 # ──────────────────────────────────────────────
 
 @dataclass
 class DiskInfo:
-    """Représente un disque physique détecté sous Windows."""
-    device: str          # ex: \\.\PhysicalDrive0
-    name: str            # ex: PhysicalDrive0
+    """Represents a physical storage device detected on Windows."""
+    device: str          # e.g. \\.\PhysicalDrive0
+    name: str            # e.g. PhysicalDrive0
     model: str
     serial: str
     disk_type: str       # hdd / ssd / nvme / unknown
@@ -84,24 +84,25 @@ class DiskInfo:
     transport: str       # sata / nvme / usb / ...
     vendor: str = ""
     firmware: str = ""
-    drive_letters: list  = field(default_factory=list)   # ex: ['C:', 'D:']
-    device_id: str = ""  # numéro de disque Windows (0, 1, 2...)
+    drive_letters: list  = field(default_factory=list)   # e.g. ['C:', 'D:']
+    device_id: str = ""  # Windows disk number (0, 1, 2...)
     smart_available: bool = False
-    mountpoints: list    = field(default_factory=list)   # alias drive_letters pour compat Linux
+    mountpoints: list    = field(default_factory=list)   # alias for drive_letters for Linux compatibility
     hpa_detected: bool = False
     hpa_wiped: bool = False
 
 
 # ──────────────────────────────────────────────
-# Utilitaires PowerShell
+# PowerShell Utilities
 # ──────────────────────────────────────────────
 
 def _run_ps(script: str, timeout: int = 15) -> tuple[int, str, str]:
     """
-    Exécute un script PowerShell et retourne (rc, stdout, stderr).
-    Utilise -NonInteractive -NoProfile pour la vitesse.
-    Force l'encodage UTF-8 pour les caractères spéciaux.
+    Executes a PowerShell script and returns (rc, stdout, stderr).
+    Uses -NonInteractive -NoProfile for execution speed.
+    Enforces UTF-8 encoding for special characters.
     """
+
     # On passe le script via un fichier temp pour éviter les problèmes
     # d'échappement en ligne de commande
     with tempfile.NamedTemporaryFile(

@@ -1,14 +1,14 @@
 """
 SecureWipe — disk_linux.py
-Détection et analyse des disques sous Linux.
+Linux Storage Device Detection and Analysis.
 
-Dépendances système (installées par install.sh) :
-  - lsblk    (util-linux, présent sur toutes les distros modernes)
-  - hdparm   (pour ATA Secure Erase et infos HDD)
-  - nvme-cli (pour NVMe Format)
-  - smartctl (optionnel, smartmontools — enrichit les infos S/N)
-  - lsblk    (pour LUKS : fstype = crypto_LUKS)
-  - dmsetup  (pour détecter si un mapping LUKS est actif)
+System Dependencies (installed via install.sh):
+  - lsblk    (util-linux, present on standard distributions)
+  - hdparm   (for ATA Secure Erase and HDD information)
+  - nvme-cli (for NVMe Format)
+  - smartctl (optional, smartmontools — serial number enrichment)
+  - lsblk    (for LUKS detection: fstype = crypto_LUKS)
+  - dmsetup  (for active LUKS volume mapping detection)
 """
 
 import json
@@ -23,7 +23,7 @@ from typing import Optional
 from core.i18n import t
 
 # ──────────────────────────────────────────────
-# Structures de données
+# Data Structures
 # ──────────────────────────────────────────────
 
 DISK_TYPE_HDD   = "hdd"
@@ -33,24 +33,25 @@ DISK_TYPE_UNK   = "unknown"
 
 ENC_NONE        = "none"
 ENC_LUKS        = "luks"
-ENC_BITLOCKER   = "bitlocker"   # rare sous Linux mais possible (disque dual-boot)
-ENC_SED         = "sed"         # Self-Encrypting Drive détecté via hdparm
+ENC_BITLOCKER   = "bitlocker"   # Dual-boot Windows partition detection
+ENC_SED         = "sed"         # Self-Encrypting Drive detected via hdparm
 
 
 @dataclass
 class DiskInfo:
-    """Représente un disque physique détecté."""
-    device: str          # ex: /dev/sda, /dev/nvme0n1
-    name: str            # ex: sda, nvme0n1
-    model: str           # ex: Samsung SSD 870 EVO
-    serial: str          # numéro de série
+    """Represents a physical storage device detected on Linux."""
+    device: str          # e.g. /dev/sda, /dev/nvme0n1
+    name: str            # e.g. sda, nvme0n1
+    model: str           # e.g. Samsung SSD 870 EVO
+    serial: str          # Serial number
     disk_type: str       # hdd / ssd / nvme / unknown
-    size_bytes: int      # taille en octets
-    size_human: str      # ex: 500 GiB
-    is_system: bool      # True si contient /, /boot, [SWAP], etc.
+    size_bytes: int      # Capacity in bytes
+    size_human: str      # e.g. 500 GiB
+    is_system: bool      # True if mounted on /, /boot, [SWAP], etc.
     encryption: str      # none / luks / bitlocker / sed
     transport: str       # sata / nvme / usb / ...
-    # Détails supplémentaires
+    # Additional metadata
+
     vendor: str = ""
     firmware: str = ""
     smart_available: bool = False
