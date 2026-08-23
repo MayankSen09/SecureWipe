@@ -1,35 +1,11 @@
-import os
-import sys
 import json
 import time
-import tempfile
+import sys
 from pathlib import Path
-from typing import Optional
-from datetime import datetime, timezone
-
-from fastapi import FastAPI, HTTPException, Query, Body
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse, HTMLResponse, Response
-
-app = FastAPI(
-    title="SecureWipe Verification & PDF Certificate Generator API",
-    description="REST API for tamper-proof data sanitization verification, PDF certificate generation, and blockchain anchoring.",
-    version="2.0.0"
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+from http.server import BaseHTTPRequestHandler
+from urllib.parse import parse_qs, urlparse
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-for p in (str(BASE_DIR), str(Path(__file__).resolve().parent), str(Path.cwd())):
-    if p not in sys.path:
-        sys.path.insert(0, p)
-
 possible_chain_files = [
     BASE_DIR / "trust" / "chain.json",
     Path(__file__).resolve().parent / "trust" / "chain.json",
@@ -71,91 +47,101 @@ CERTIFIED_RECYCLERS = [
     }
 ]
 
-def _normalize_hash(raw: str) -> str:
-    h = raw.strip()
-    if h.lower().startswith("0x"):
-        h = h[2:]
-    return h
+class handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        parsed = urlparse(self.path)
+        path = parsed.path
+        params = parse_qs(parsed.query)
 
-@app.get("/", tags=["Verification & Ledger"])
-@app.get("/api/index", tags=["Verification & Ledger"])
-@app.get("/api/index.py", tags=["Verification & Ledger"])
-def read_root():
-    try:
+        if path == "/api/v1/health":
+            block_count = 0
+            if CHAIN_FILE.exists():
+                try:
+                    with open(CHAIN_FILE, "r", encoding="utf-8") as f:
+                        block_count = len(json.load(f))
+                except Exception:
+                    pass
+            body = json.dumps({
+                "status": "healthy",
+                "service": "SecureWipe Verification Node",
+                "version": "2.0.0",
+                "ledger_blocks": block_count
+            }).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
+        if path == "/verify":
+            raw_hash = params.get("hash", [""])[0].strip()
+            if raw_hash.lower().startswith("0x"):
+                raw_hash = raw_hash[2:]
+
+            if CHAIN_FILE.exists():
+                try:
+                    with open(CHAIN_FILE, "r", encoding="utf-8") as f:
+                        chain = json.load(f)
+                    for block in chain:
+                        if block.get("block_hash") == raw_hash:
+                            ts = block.get("timestamp", time.time())
+                            ts_human = time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime(ts))
+                            res = {
+                                "verified": True,
+                                "block_hash": block.get("block_hash"),
+                                "prev_hash": block.get("prev_hash"),
+                                "report_id": block.get("report_id", "SW-REC-" + raw_hash[:8].upper()),
+                                "device": block.get("device", "Enterprise Storage Drive"),
+                                "serial": block.get("serial", "SW-SN-" + raw_hash[:6].upper()),
+                                "method": block.get("method", "NIST SP 800-88 Purge"),
+                                "confidence_score": block.get("confidence_score", 100),
+                                "timestamp": ts,
+                                "timestamp_human": ts_human,
+                                "sha256": block.get("sha256", raw_hash),
+                                "cert_pdf_hash": block.get("cert_pdf_hash", raw_hash[:16]),
+                                "pdf_download_url": f"/download-pdf?hash={raw_hash}",
+                                "recycling_eligible": True,
+                                "circular_economy_status": "Verified Safe for Resale & Circular Recycling",
+                                "recommended_recyclers": CERTIFIED_RECYCLERS
+                            }
+                            body = json.dumps(res).encode("utf-8")
+                            self.send_response(200)
+                            self.send_header("Content-Type", "application/json")
+                            self.end_headers()
+                            self.wfile.write(body)
+                            return
+                except Exception:
+                    pass
+
+            body = json.dumps({
+                "verified": False,
+                "message": "Certificate block hash not found in blockchain ledger. Invalid or tampered certificate."
+            }).encode("utf-8")
+            self.send_response(404)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
+        if path == "/recyclers":
+            body = json.dumps({"status": "success", "recyclers": CERTIFIED_RECYCLERS}).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
         index_file = WEB_DIR / "index.html"
         if index_file.exists():
-            return HTMLResponse(content=index_file.read_text(encoding="utf-8", errors="replace"))
-    except Exception as e:
-        return JSONResponse({"status": "ok", "message": "SecureWipe API operational", "error": str(e)})
-    return {"status": "ok", "message": "SecureWipe Verification & PDF Generator API is operational."}
+            html = index_file.read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(html)
+            return
 
-@app.get("/api/v1/health", tags=["Verification & Ledger"])
-def health_check():
-    block_count = 0
-    if CHAIN_FILE.exists():
-        try:
-            with open(CHAIN_FILE, "r", encoding="utf-8") as f:
-                chain = json.load(f)
-                block_count = len(chain)
-        except Exception:
-            pass
-
-    return {
-        "status": "healthy",
-        "service": "SecureWipe Verification Node",
-        "version": "2.0.0",
-        "platform": sys.platform,
-        "ledger_blocks": block_count,
-        "timestamp_utc": datetime.now(timezone.utc).isoformat()
-    }
-
-@app.get("/verify", tags=["Verification & Ledger"])
-def verify_hash(hash: str = Query(..., description="Blockchain block hash to verify")):
-    clean_hash = _normalize_hash(hash)
-
-    if CHAIN_FILE.exists():
-        try:
-            with open(CHAIN_FILE, "r", encoding="utf-8") as f:
-                chain = json.load(f)
-            for block in chain:
-                if block.get("block_hash") == clean_hash:
-                    ts = block.get("timestamp", time.time())
-                    ts_human = time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime(ts))
-                    return {
-                        "verified": True,
-                        "block_hash": block.get("block_hash"),
-                        "prev_hash": block.get("prev_hash"),
-                        "report_id": block.get("report_id", "SW-REC-" + clean_hash[:8].upper()),
-                        "device": block.get("device", "Enterprise Storage Drive"),
-                        "serial": block.get("serial", "SW-SN-" + clean_hash[:6].upper()),
-                        "method": block.get("method", "NIST SP 800-88 Purge"),
-                        "confidence_score": block.get("confidence_score", 100),
-                        "timestamp": ts,
-                        "timestamp_human": ts_human,
-                        "sha256": block.get("sha256", clean_hash),
-                        "cert_pdf_hash": block.get("cert_pdf_hash", clean_hash[:16]),
-                        "pdf_download_url": f"/download-pdf?hash={clean_hash}",
-                        "recycling_eligible": True,
-                        "circular_economy_status": "Verified Safe for Resale & Circular Recycling",
-                        "recommended_recyclers": CERTIFIED_RECYCLERS
-                    }
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to read ledger: {str(e)}")
-
-    return JSONResponse(
-        status_code=404,
-        content={
-            "verified": False,
-            "message": "Certificate block hash not found in blockchain ledger. Invalid or tampered certificate."
-        }
-    )
-
-@app.get("/recyclers")
-def get_recyclers():
-    return {"status": "success", "recyclers": CERTIFIED_RECYCLERS}
-
-try:
-    from a2wsgi import ASGIMiddleware
-    handler = ASGIMiddleware(app)
-except Exception:
-    handler = app
+        body = json.dumps({"status": "ok", "message": "SecureWipe Verification & PDF Generator API is operational."}).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(body)
