@@ -1,4 +1,4 @@
-# ── Python ──
+# ── Python ──────────────────────────────────────
 __pycache__/
 *.py[cod]
 *.pyo
@@ -9,13 +9,14 @@ dist/
 build/
 .eggs/
 
-# ── Environnements virtuels ──
+# ── Virtual Environments ─────────────────────────
 .venv/
 venv/
 env/
+ENV/
 
-# ── SecureWipe — fichiers générés ──
-# Certificats PDF et logs produits par l'outil
+# ── TrustWipe — Generated Runtime Files ─────────
+# PDF certificates and operation logs produced by the tool
 logs/*.pdf
 logs/*.log
 logs/*.txt
@@ -23,20 +24,30 @@ generated_certs/
 *.pdf
 *.log
 
-# Compteur séquentiel local (propre à chaque machine)
+# Sequential wipe counter (machine-local)
 .securewipe_counter
 
-# ── OS ──
+# ── OS Files ────────────────────────────────────
 .DS_Store
 Thumbs.db
 desktop.ini
+ehthumbs.db
 
-# ── IDEs ──
+# ── IDE & Editor ────────────────────────────────
 .vscode/
 .idea/
 *.swp
 *.swo
+*.sublime-project
+*.sublime-workspace
 
-# ── Divers ──
+# ── Miscellaneous ───────────────────────────────
 *.img
 *.bak
+*.tmp
+.env
+.env.local
+.env.*.local
+
+# ── Vercel ──────────────────────────────────────
+.vercel
