@@ -14,7 +14,7 @@ from gui.steps.step3_method   import Step3Method
 from gui.steps.step4_wipe     import Step4Wipe
 
 # CustomTkinter Configuration
-ctk.set_appearance_mode("dark")
+ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
 
 SCRIPT_DIR = Path(__file__).resolve().parent.parent
@@ -103,31 +103,59 @@ class SecureWipeApp(ctk.CTk):
             except Exception:
                 pass
 
-        # Title
+        # Title & Mode Selector
         title_frame = ctk.CTkFrame(self._header, fg_color="transparent")
         title_frame.pack(side="left", padx=4)
-        ctk.CTkLabel(title_frame, text="SecureWipe",
+        ctk.CTkLabel(title_frame, text="SecureWipe Platform",
             font=FONT_TITLE, text_color=BLUE_LIGHT).pack(anchor="w")
-        ctk.CTkLabel(title_frame, text="ANSSI · NIST SP 800-88 Rev.2 · GPL v3",
+        ctk.CTkLabel(title_frame, text="ANSSI · NIST SP 800-88 Rev.2 · Scalpel Engine · GPL v3",
             font=FONT_SMALL, text_color=TEXT_DIM).pack(anchor="w")
 
-        # Language selector
-        lang_frame = ctk.CTkFrame(self._header, fg_color="transparent")
-        lang_frame.pack(side="right", padx=16)
-        self._lang_var = ctk.StringVar(value="EN" if self._lang=="en" else "FR")
-        ctk.CTkSegmentedButton(lang_frame,
-            values=["EN","FR"],
-            variable=self._lang_var,
-            command=self._switch_lang,
-            fg_color=BG_INPUT,
+        # Mode Selector (Operation 1 vs Operation 2)
+        mode_frame = ctk.CTkFrame(self._header, fg_color="transparent")
+        mode_frame.pack(side="left", padx=24)
+        self._op_mode_var = ctk.StringVar(value="🧹 Operation 1: Secure Erasure")
+        ctk.CTkSegmentedButton(mode_frame,
+            values=["🧹 Operation 1: Secure Erasure", "🔍 Operation 2: File Recovery"],
+            variable=self._op_mode_var,
+            command=self._switch_op_mode,
+            fg_color="#e5e5ea",
             selected_color=BLUE_PRIMARY,
-            selected_hover_color=BLUE_LIGHT,
-            unselected_color=BG_INPUT,
+            selected_hover_color=BLUE_DARK,
+            unselected_color="#ffffff",
             unselected_hover_color=BG_HOVER,
             text_color=TEXT_PRIMARY,
-            font=FONT_STEP, height=32,
+            font=FONT_STEP, height=36,
             corner_radius=RADIUS_SM,
         ).pack()
+
+        # English Only Indicator Badge
+        badge_frame = ctk.CTkFrame(self._header, fg_color="transparent")
+        badge_frame.pack(side="right", padx=16)
+        ctk.CTkButton(badge_frame,
+            text="🌐 EN",
+            state="disabled",
+            fg_color=BG_INPUT,
+            text_color_disabled=TEXT_SECOND,
+            font=FONT_STEP, height=32, width=64,
+            corner_radius=RADIUS_SM,
+        ).pack()
+
+
+    def _switch_op_mode(self, val):
+        if "Operation 2" in val:
+            for w in self._content.winfo_children():
+                w.destroy()
+            from gui.steps.step_carve import StepCarve
+            self._carve_view = StepCarve(self._content)
+            self._carve_view.pack(fill="both", expand=True)
+            self._stepper_frame.pack_forget()
+            self._footer.pack_forget()
+        else:
+            self._stepper_frame.pack(fill="x", before=self._content)
+            self._footer.pack(fill="x", side="bottom")
+            self._show_step(0)
+
 
     def _build_stepper(self):
         from core.i18n import t

@@ -65,3 +65,16 @@ def get_lang() -> str:
     """Returns current active language code."""
     return _current_lang
 
+
+def _detect_system_lang() -> str:
+    """Detects system language locale or defaults to 'en'."""
+    try:
+        import locale
+        sys_lang = locale.getdefaultlocale()[0] or ""
+        if sys_lang and sys_lang.lower().startswith("fr"):
+            return "fr"
+    except Exception:
+        pass
+    return "en"
+
+

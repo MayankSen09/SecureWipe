@@ -33,16 +33,13 @@ class Step1Operator(ctk.CTkFrame):
             height=BTN_H, corner_radius=RADIUS_SM)
         self._name_entry.grid(row=0, column=1, padx=(0,24), pady=(24,8), sticky="ew")
 
-        # Language
+        # Language (English Only)
         ctk.CTkLabel(card, text="Language",
             font=FONT_BODY, text_color=TEXT_SECOND, anchor="w"
             ).grid(row=1, column=0, padx=(24,12), pady=8, sticky="w")
-        self._lang_var = ctk.StringVar(value="English" if self._lang=="en" else "Français")
-        ctk.CTkOptionMenu(card, values=["English","Français"],
-            variable=self._lang_var, command=self._on_lang,
-            fg_color=BLUE_DARK, button_color=BLUE_PRIMARY,
-            button_hover_color=BLUE_LIGHT, text_color=TEXT_PRIMARY,
-            font=FONT_BODY, height=BTN_H, corner_radius=RADIUS_SM
+        self._lang_var = ctk.StringVar(value="English")
+        ctk.CTkLabel(card, text="English (EN)",
+            font=FONT_BODY, text_color=TEXT_PRIMARY, anchor="w"
             ).grid(row=1, column=1, padx=(0,24), pady=8, sticky="w")
 
         self._err = ctk.CTkLabel(card, text="", font=FONT_SMALL, text_color=RED_DANGER)
