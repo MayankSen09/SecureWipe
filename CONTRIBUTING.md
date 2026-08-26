@@ -1,6 +1,6 @@
-# Contributing to TrustWipe
+# Contributing to SecureWipe
 
-Thank you for your interest in contributing to TrustWipe! We welcome contributions of all kinds — bug fixes, new features, documentation improvements, and more.
+Thank you for your interest in contributing to SecureWipe! We welcome contributions of all kinds — bug fixes, new features, documentation improvements, and more.
 
 ---
 

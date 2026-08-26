@@ -1,4 +1,4 @@
-# 🛡️ TrustWipe — SecureWipe Platform
+# 🛡️ SecureWipe Platform
 
 <div align="center">
 
@@ -19,7 +19,7 @@
 
 ## 📋 Table of Contents
 
-- [What is TrustWipe?](#-what-is-trustwipe)
+- [What is SecureWipe?](#-what-is-securewipe)
 - [Key Features](#-key-features)
 - [Live Demo](#-live-demo)
 - [Technology Stack](#️-technology-stack)
@@ -33,11 +33,11 @@
 
 ---
 
-## 🔍 What is TrustWipe?
+## 🔍 What is SecureWipe?
 
 When you delete a file or format a disk, the operating system **only removes the pointer** to the data — the actual bytes remain physically on disk and are recoverable with free tools like Recuva or TestDisk in minutes.
 
-**TrustWipe (SecureWipe)** solves this by overwriting every sector with industry-standard algorithms, then producing a **cryptographically signed PDF audit certificate** anchored to a local SHA-256 blockchain ledger — providing undeniable, tamper-proof proof of destruction for GDPR, ANSSI, and NIST compliance.
+**SecureWipe** solves this by overwriting every sector with industry-standard algorithms, then producing a **cryptographically signed PDF audit certificate** anchored to a local SHA-256 blockchain ledger — providing undeniable, tamper-proof proof of destruction for GDPR, ANSSI, and NIST compliance.
 
 > Built for IT asset managers, refurbishers, data centers, and organizations with regulatory data disposal obligations.
 
@@ -60,7 +60,7 @@ When you delete a file or format a disk, the operating system **only removes the
 
 ## 🌐 Live Demo
 
-> **Try TrustWipe instantly — no installation required.**
+> **Try SecureWipe instantly — no installation required.**
 
 🔗 **[https://secure-wipe-eta.vercel.app/](https://secure-wipe-eta.vercel.app/)**
 
@@ -177,7 +177,7 @@ Sanitize connected Android devices via ADB/Fastboot:
 ## 📂 Project Architecture
 
 ```
-TrustWipe/
+SecureWipe/
 ├── api/
 │   └── app.py                # FastAPI REST API — verification & PDF download engine
 ├── core/
@@ -216,7 +216,7 @@ TrustWipe/
 
 ## 🔐 Sanitization Modes
 
-TrustWipe supports 5 industry-standard sanitization modes, selectable based on your security requirements:
+SecureWipe supports 5 industry-standard sanitization modes, selectable based on your security requirements:
 
 | Mode | Method | Covers Hidden Zones | Speed | Best For |
 |:-----|:-------|:------------------:|:-----:|:---------|
@@ -232,7 +232,7 @@ TrustWipe supports 5 industry-standard sanitization modes, selectable based on y
 
 ## 📜 Compliance & Standards
 
-TrustWipe's certificates are recognized under the following regulatory frameworks:
+SecureWipe's certificates are recognized under the following regulatory frameworks:
 
 | Standard | Description |
 |:---------|:------------|

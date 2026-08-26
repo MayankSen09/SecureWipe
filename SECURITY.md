@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-The following versions of TrustWipe currently receive security updates:
+The following versions of SecureWipe currently receive security updates:
 
 | Version | Supported |
 |:--------|:---------:|
@@ -13,7 +13,7 @@ The following versions of TrustWipe currently receive security updates:
 
 ## 🛡️ Reporting a Vulnerability
 
-We take security seriously. If you discover a security vulnerability in TrustWipe, **please do NOT open a public GitHub issue**.
+We take security seriously. If you discover a security vulnerability in SecureWipe, **please do NOT open a public GitHub issue**.
 
 Instead, report it responsibly by:
 
@@ -30,18 +30,15 @@ We will acknowledge your report within **72 hours** and aim to provide a fix wit
 
 ## 🔐 Security Architecture
 
-TrustWipe's core trust model relies on:
+SecureWipe's core trust model relies on:
 
-- **SHA-256 hash chaining** — each audit block is cryptographically linked to the previous one; any tampering is immediately detectable
-- **QR-embedded certificate hashes** — certificates carry an offline-verifiable SHA-256 fingerprint
-- **No external network calls during wipe operations** — the erasure engine operates fully offline
-- **Read-only API verification** — the web portal only reads from the ledger; it cannot modify wipe records
+- Cryptographic signatures generated on audit certificates.
+- SHA-256 block-chain ledger entries recorded in `trust/chain.json`.
+- Strict boundaries preventing modifications to system drive partitions.
 
----
+### Out-of-Scope Security Considerations
 
-## ⚠️ Threat Model Notes
-
-- **Physical access** to the machine running TrustWipe is assumed to be controlled by the operator
+- **Physical access** to the machine running SecureWipe is assumed to be controlled by the operator
 - **Certificate PDFs** are tamper-evident via blockchain anchoring but are not digitally signed with a PKI certificate (planned feature)
 - **The local blockchain ledger** (`trust/chain.json`) should be stored on a write-protected or access-controlled system in production deployments
 
