@@ -123,7 +123,15 @@ def read_root():
     if not index_file.exists():
         index_file = BASE_DIR / "index.html"
     if index_file.exists():
-        return HTMLResponse(content=index_file.read_text(encoding="utf-8", errors="replace"))
+        try:
+            return HTMLResponse(content=index_file.read_text(encoding="utf-8", errors="replace"))
+        except Exception:
+            pass
+    try:
+        from core.web_html import GET_WEB_HTML
+        return HTMLResponse(content=GET_WEB_HTML())
+    except Exception:
+        pass
     return {"status": "ok", "message": "SecureWipe Verification & PDF Generator API is operational."}
 
 
