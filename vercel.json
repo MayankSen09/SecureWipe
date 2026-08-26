@@ -1,8 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/app.py" }
+  ],
   "functions": {
     "app.py": {
-      "excludeFiles": "{tests/**,venv/**,gui/**,android/**,logs/**,generated_certs/**,**/*.pdf,**/*.log,**/*.pyc}"
+      "excludeFiles": "{tests/**,venv/**,gui/**,android/**,logs/**,generated_certs/**,**/*.pyc}"
     }
   }
 }

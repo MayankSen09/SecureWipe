@@ -115,6 +115,8 @@ def _load_chain():
 @app.get("/")
 def read_root():
     index_file = WEB_DIR / "index.html"
+    if not index_file.exists():
+        index_file = BASE_DIR / "index.html"
     if index_file.exists():
         return HTMLResponse(content=index_file.read_text(encoding="utf-8", errors="replace"))
     return {"status": "ok", "message": "SecureWipe Verification & PDF Generator API is operational."}
