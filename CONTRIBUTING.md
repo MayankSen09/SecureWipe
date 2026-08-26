@@ -148,4 +148,4 @@ When opening an issue, please include:
 
 Every contribution, no matter how small, is valued and appreciated. Together we can make data sanitization more trustworthy and accessible for everyone.
 
-**[🌐 Live Demo](https://secure-wipe-eta.vercel.app/) · [📖 README](README.md) · [🔗 Issues](https://github.com/MayankSen09/SecureWipe/issues)**
+**[🌐 Live Demo](https://secure-wipe-omega.vercel.app/) · [📖 README](README.md) · [🔗 Issues](https://github.com/MayankSen09/SecureWipe/issues)**

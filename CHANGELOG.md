@@ -58,7 +58,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Linux drive detection** with `hdparm` HPA/DCO analysis
 - **BitLocker & TCG Opal SED encryption scanner**
 - **Internationalization support** (EN / FR / HI)
-- **Web verification portal** deployed on Vercel: [https://secure-wipe-eta.vercel.app/](https://secure-wipe-eta.vercel.app/)
+- **Web verification portal** deployed on Vercel: [https://secure-wipe-omega.vercel.app/](https://secure-wipe-omega.vercel.app/)
 - **Mock mode** for safe demonstration without hardware
 - Unit test suite for the confidence scoring engine
 

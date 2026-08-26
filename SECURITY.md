@@ -46,4 +46,4 @@ SecureWipe's core trust model relies on:
 
 ## 🌐 Live Portal Security
 
-The live demo at [https://secure-wipe-eta.vercel.app/](https://secure-wipe-eta.vercel.app/) is a **read-only verification portal**. It does not accept uploads, does not store user data, and does not process live wipe operations.
+The live demo at [https://secure-wipe-omega.vercel.app/](https://secure-wipe-omega.vercel.app/) is a **read-only verification portal**. It does not accept uploads, does not store user data, and does not process live wipe operations.

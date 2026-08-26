@@ -162,7 +162,7 @@ Start the FastAPI server and access the certificate verification portal:
 | `GET /verify?hash=<hash>` | Verify a certificate by SHA-256 |
 | `GET /download-pdf?hash=<hash>` | Download signed PDF certificate |
 
-> **Or use the live hosted version:** [https://secure-wipe-eta.vercel.app/](https://secure-wipe-eta.vercel.app/)
+> **Or use the live hosted version:** [https://secure-wipe-omega.vercel.app/](https://secure-wipe-omega.vercel.app/)
 
 ### Option E — Android Smartphone Wipe Agent
 
@@ -278,6 +278,6 @@ Distributed under the **GNU GPL v3 License**. See [`LICENSE`](LICENSE) for full 
 
 Made with ❤️ for secure, compliant, and sustainable IT asset disposal.
 
-**[🌐 Live Demo](https://secure-wipe-eta.vercel.app/) · [📖 Technical Docs](TECHNICAL.md) · [🔄 Technical Flow](TECHNICAL_FLOW.md)**
+**[🌐 Live Demo](https://secure-wipe-omega.vercel.app/) · [📖 Technical Docs](TECHNICAL.md) · [🔄 Technical Flow](TECHNICAL_FLOW.md)**
 
 </div>
