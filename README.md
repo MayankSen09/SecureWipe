@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![Live Demo](https://img.shields.io/badge/🌐%20Live%20Demo-secure--wipe--eta.vercel.app-6366f1?style=for-the-badge&logo=vercel&logoColor=white)](https://secure-wipe-eta.vercel.app/)
+[![Live Demo](https://img.shields.io/badge/🌐%20Live%20Demo-secure--wipe--omega.vercel.app-6366f1?style=for-the-badge&logo=vercel&logoColor=white)](https://secure-wipe-omega.vercel.app/)
 [![Python Version](https://img.shields.io/badge/Python-3.9%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-22c55e?style=for-the-badge)](LICENSE)
 [![NIST SP 800-88](https://img.shields.io/badge/Standard-NIST%20SP%20800--88-f97316?style=for-the-badge)](https://csrc.nist.gov/)
@@ -11,7 +11,7 @@
 
 **A professional-grade, auditable data sanitization platform for secure IT asset disposal and circular economy compliance.**
 
-[**🚀 Try the Live Demo →**](https://secure-wipe-eta.vercel.app/)
+[**🚀 Try the Live Demo →**](https://secure-wipe-omega.vercel.app/)
 
 </div>
 
@@ -62,7 +62,7 @@ When you delete a file or format a disk, the operating system **only removes the
 
 > **Try SecureWipe instantly — no installation required.**
 
-🔗 **[https://secure-wipe-eta.vercel.app/](https://secure-wipe-eta.vercel.app/)**
+🔗 **[https://secure-wipe-omega.vercel.app/](https://secure-wipe-omega.vercel.app/)**
 
 The web portal lets you:
 - Verify any existing certificate by entering its SHA-256 hash
