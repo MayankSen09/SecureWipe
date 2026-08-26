@@ -1,8 +1,11 @@
-"""SecureWipe GUI — Step 3: Sanitization Method Selection"""
+import re
 import customtkinter as ctk
 from gui.theme import *
 from core.i18n import t
 from core.wipe_engine import WipeMode
+
+def _clean(txt):
+    return re.sub(r"\[/?\w+\]", "", txt)
 
 MODES = [
     ("anssi1",  "wipe_m1_name", "wipe_m1_desc", "wipe_m1_compat",  ["hdd"],             False),
@@ -69,20 +72,20 @@ class Step3Method(ctk.CTkFrame):
             top = ctk.CTkFrame(card, fg_color="transparent")
             top.pack(fill="x", padx=16, pady=(12,4))
 
-            rb = ctk.CTkRadioButton(top, text=t(name_k),
+            rb = ctk.CTkRadioButton(top, text=_clean(t(name_k)),
                 variable=self._radio_var, value=key,
                 font=FONT_HEADING,
                 text_color=TEXT_PRIMARY if ok else TEXT_DIM,
-                fg_color=BLUE_PRIMARY, hover_color=BLUE_LIGHT,
+                fg_color=BLUE_PRIMARY, hover_color=BLUE_DARK,
                 state="normal" if ok else "disabled",
                 command=lambda k=key: self._on_select(k))
             rb.pack(side="left")
 
-            compat_lbl = ctk.CTkLabel(top, text=t(compat_k),
-                font=FONT_SMALL, text_color=BLUE_LIGHT if ok else TEXT_DIM)
+            compat_lbl = ctk.CTkLabel(top, text=_clean(t(compat_k)),
+                font=FONT_SMALL, text_color=BLUE_PRIMARY if ok else TEXT_DIM)
             compat_lbl.pack(side="right")
 
-            ctk.CTkLabel(card, text=t(desc_k), font=FONT_SMALL,
+            ctk.CTkLabel(card, text=_clean(t(desc_k)), font=FONT_SMALL,
                 text_color=TEXT_SECOND if ok else TEXT_DIM,
                 anchor="w", wraplength=640).pack(fill="x", padx=40, pady=(0,12))
 

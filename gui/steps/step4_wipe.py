@@ -1,10 +1,14 @@
 """SecureWipe GUI — Step 4: Sanitization Execution and Results"""
 import threading, time, os, sys
 from pathlib import Path
+import re
 import customtkinter as ctk
 from gui.theme import *
 from core.i18n import t
 from core.wipe_engine import run_wipe, WipeMode, WipeStatus
+
+def _clean(txt):
+    return re.sub(r"\[/?\w+\]", "", txt)
 
 SCRIPT_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -19,7 +23,7 @@ class Step4Wipe(ctk.CTkFrame):
         self._build()
 
     def _build(self):
-        ctk.CTkLabel(self, text=t("confirm_title"),
+        ctk.CTkLabel(self, text=_clean(t("confirm_title")),
             font=FONT_TITLE, text_color=TEXT_PRIMARY).pack(pady=(20,4))
 
         # Recap card
