@@ -4,6 +4,7 @@ Root-level FastAPI entrypoint for Vercel deployment.
 """
 
 import json
+import os
 import sys
 import time
 from pathlib import Path

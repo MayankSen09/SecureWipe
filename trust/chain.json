@@ -754,5 +754,17 @@
     "block_hash": "122acd764e69214202fa4726695562a3ecdadbef9df83471d3f4226108c3ec33",
     "cert_pdf_hash": "0d415c7806c03acabe0af573f7bc960ad68233926f27a6c74e968d64e98d2833",
     "index": 62
+  },
+  {
+    "timestamp": 1787740009.620994,
+    "meta_hash": "2a72e4957deba2cca8a2ec992326e80ec1711b27df89741fa1be2945302e8fb8",
+    "prev_hash": "122acd764e69214202fa4726695562a3ecdadbef9df83471d3f4226108c3ec33",
+    "device": "\\\\.\\PhysicalDrive0",
+    "serial": "SN-TEST-12345",
+    "method": "NIST SP 800-88 Purge",
+    "confidence_score": 100,
+    "block_hash": "6d8b96b91dd061a8d3f0a0291f9aa437f81b23595a15a1d99a4af4c82b9cafa0",
+    "cert_pdf_hash": "17cad8ac24f7077759c4cec0b960d7e348650d02878b999375e5489eab2bb76d",
+    "index": 63
   }
 ]
