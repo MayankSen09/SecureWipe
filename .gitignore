@@ -17,9 +17,7 @@ ENV/
 
 # ── TrustWipe — Generated Runtime Files ─────────
 # PDF certificates and operation logs produced by the tool
-logs/*.pdf
-logs/*.log
-logs/*.txt
+logs/
 generated_certs/
 *.pdf
 *.log

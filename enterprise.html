@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Enterprise Fleet & Circular Recycler Marketplace — SecureWipe</title>
+  <meta name="description" content="Unlock enterprise IT asset value through CPCB-compliant circular recycling, verified data sanitization, and automated fleet licensing." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f5f5f7;
+      --bg-tertiary: #e8e8ed;
+      --text-main: #1d1d1f;
+      --text-muted: #86868b;
+      --accent-blue: #0071e3;
+      --accent-hover: #0077ed;
+      --border-color: rgba(0, 0, 0, 0.1);
+      --card-bg: #ffffff;
+      --success-green: #34c759;
+      --success-bg: #eafbe7;
+    }
+
+    [data-theme="dark"] {
+      --bg-primary: #0a0c10;
+      --bg-secondary: #12161f;
+      --bg-tertiary: #1a202c;
+      --text-main: #f0f6fc;
+      --text-muted: #8b949e;
+      --accent-blue: #2f81f7;
+      --accent-hover: #388bfd;
+      --border-color: rgba(255, 255, 255, 0.1);
+      --card-bg: #161b22;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; }
+    body { background: var(--bg-primary); color: var(--text-main); line-height: 1.6; }
+
+    /* Navigation */
+    nav { position: fixed; top: 0; width: 100%; z-index: 1000; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-color); }
+    [data-theme="dark"] nav { background: rgba(10, 12, 16, 0.85); }
+    .nav-container { max-width: 1200px; margin: 0 auto; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-size: 1.25rem; font-weight: 700; color: var(--text-main); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; }
+    .logo svg { color: var(--accent-blue); }
+    .nav-links { display: flex; gap: 2rem; align-items: center; }
+    .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+    .nav-links a:hover, .nav-links a.active { color: var(--accent-blue); }
+
+    .wallet-btn { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 99px; padding: 0.5rem 1.15rem; font-size: 0.85rem; font-weight: 500; color: var(--text-main); cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; }
+    .dot { width: 8px; height: 8px; background: var(--success-green); border-radius: 50%; display: inline-block; }
+
+    /* Page Header */
+    .page-header { padding: 8rem 2rem 3rem; text-align: center; max-width: 900px; margin: 0 auto; }
+    .page-header h1 { font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem; }
+    .page-header p { font-size: 1.2rem; color: var(--text-muted); }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 2rem 6rem; }
+
+    .section-title { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 1.5rem; text-align: center; }
+
+    /* Recycler Cards */
+    .recycler-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-bottom: 5rem; }
+    @media(max-width: 900px) { .recycler-grid { grid-template-columns: 1fr; } }
+
+    .recycler-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 20px; padding: 2rem; transition: transform 0.3s; }
+    .recycler-card:hover { transform: translateY(-4px); border-color: var(--accent-blue); }
+    .recycler-name { font-size: 1.4rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .recycler-type { color: var(--accent-blue); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 1rem; }
+    .payout-box { background: var(--bg-secondary); border-radius: 12px; padding: 1rem; margin-top: 1.5rem; font-weight: 700; color: var(--success-green); text-align: center; }
+
+    /* Pricing Table */
+    .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-bottom: 4rem; }
+    @media(max-width: 900px) { .pricing-grid { grid-template-columns: 1fr; } }
+
+    .price-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 24px; padding: 2.5rem; position: relative; }
+    .price-card.featured { border-color: var(--accent-blue); box-shadow: 0 10px 40px rgba(0, 113, 227, 0.15); }
+    .featured-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--accent-blue); color: white; padding: 0.2rem 1rem; border-radius: 99px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+
+    .price-val { font-size: 2.5rem; font-weight: 800; margin: 1rem 0; }
+    .price-btn { display: block; width: 100%; background: var(--accent-blue); color: white; text-align: center; padding: 0.85rem; border-radius: 12px; font-weight: 600; text-decoration: none; margin-top: 2rem; }
+    .price-btn:hover { background: var(--accent-hover); }
+
+    /* Footer */
+    footer { background: var(--bg-secondary); border-top: 1px solid var(--border-color); padding: 4rem 2rem 2rem; }
+    .footer-container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 2fr repeat(3, 1fr); gap: 3rem; margin-bottom: 3rem; }
+    @media(max-width: 768px) { .footer-container { grid-template-columns: 1fr; } }
+    .footer-col h4 { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 1rem; }
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
+    .footer-col a { color: var(--text-main); text-decoration: none; font-size: 0.9rem; }
+    .footer-col a:hover { color: var(--accent-blue); }
+    .footer-bottom { max-width: 1200px; margin: 0 auto; padding-top: 2rem; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav>
+    <div class="nav-container">
+      <a href="index.html" class="logo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          <path d="M9 12l2 2 4-4"></path>
+        </svg>
+        SecureWipe
+      </a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="products.html">Sanitization Engines</a>
+        <a href="verify.html">Audit Verification</a>
+        <a href="explorer.html">Ledger Explorer</a>
+        <a href="enterprise.html" class="active">Enterprise Fleet</a>
+      </div>
+      <button class="wallet-btn" onclick="alert('SecureWipe Node Connected to Mainnet.')">
+        <span class="dot"></span>
+        <span>Mainnet Node Active</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Page Header -->
+  <header class="page-header">
+    <h1>Enterprise Fleet & Circular Recycler Ecosystem</h1>
+    <p>Empowering IT Asset Disposition (ITAD) managers to monetize sanitized hardware while meeting CPCB 2022 E-Waste Compliance Regulations.</p>
+  </header>
+
+  <div class="container">
+    
+    <h2 class="section-title">CPCB Accredited E-Waste Recycler Partners</h2>
+    <div class="recycler-grid">
+      <div class="recycler-card">
+        <div class="recycler-name">Attero Recycling</div>
+        <div class="recycler-type">CPCB Certified Extractor</div>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Pan-India physical hardware recovery, precious metals extraction, and certified e-waste destruction.</p>
+        <div class="payout-box">Est. Payout: ₹8,500 – ₹24,000 / unit</div>
+      </div>
+      <div class="recycler-card">
+        <div class="recycler-name">Karo Sambhav</div>
+        <div class="recycler-type">Producer Responsibility Org (PRO)</div>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">National network for corporate IT fleet recycling, ESG compliance auditing, and carbon credits.</p>
+        <div class="payout-box">Enterprise Asset Payout</div>
+      </div>
+      <div class="recycler-card">
+        <div class="recycler-name">Cashify Refurbish</div>
+        <div class="recycler-type">IT Refurbisher & Reseller</div>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Instant bank transfers for verified sanitized laptops, servers, and smartphone fleets.</p>
+        <div class="payout-box">Instant Bank Payout</div>
+      </div>
+    </div>
+
+    <h2 class="section-title">Enterprise Fleet Plans & Licensing</h2>
+    <div class="pricing-grid">
+      
+      <div class="price-card">
+        <h3>Community Auditor</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Ideal for individual IT auditors & single-device sanitization.</p>
+        <div class="price-val">Free</div>
+        <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.9rem;">
+          <li>✓ Single drive wipe & CLI tool</li>
+          <li>✓ Basic PDF Certificate</li>
+          <li>✓ Local Hash verification</li>
+        </ul>
+        <a href="index.html#generator" class="price-btn" style="background: var(--bg-secondary); color: var(--text-main); border: 1px solid var(--border-color);">Get Started</a>
+      </div>
+
+      <div class="price-card featured">
+        <span class="featured-badge">Most Popular</span>
+        <h3>Enterprise Fleet</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">For corporate IT fleets, data centers, and ITAD recycling providers.</p>
+        <div class="price-val">$49 <span style="font-size: 1rem; font-weight: 400; color: var(--text-muted);">/ month</span></div>
+        <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.9rem;">
+          <li>✓ Unlimited drive sanitizations</li>
+          <li>✓ PXE Network Boot Server</li>
+          <li>✓ Headless Windows/Linux Agent</li>
+          <li>✓ Real-time Blockchain Anchoring</li>
+          <li>✓ Certified Recycler Marketplace API</li>
+        </ul>
+        <a href="#" class="price-btn" onclick="alert('Enrolling in Enterprise Fleet Plan...')">Deploy Fleet Agent</a>
+      </div>
+
+      <div class="price-card">
+        <h3>Government / Recycler</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">For regulatory compliance bodies, PROs, and large recycler plants.</p>
+        <div class="price-val">Custom</div>
+        <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.9rem;">
+          <li>✓ Dedicated Blockchain Ledger Node</li>
+          <li>✓ Custom CPCB Compliance Reporting</li>
+          <li>✓ On-Premise Air-Gapped Deployment</li>
+          <li>✓ 24/7 Priority SLA Support</li>
+        </ul>
+        <a href="#" class="price-btn" style="background: var(--bg-secondary); color: var(--text-main); border: 1px solid var(--border-color);" onclick="alert('Contacting Enterprise Sales Team...')">Contact Sales</a>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-container">
+      <div>
+        <div class="logo" style="margin-bottom: 1rem;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
+          SecureWipe
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Verifiable IT Asset Sanitization & Circular Economy Platform for Enterprise Fleet Retirement.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Products</h4>
+        <ul>
+          <li><a href="products.html">Hardware Purge Engine</a></li>
+          <li><a href="products.html">File Shredder</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Verification</h4>
+        <ul>
+          <li><a href="verify.html">Audit Hash Lookup</a></li>
+          <li><a href="explorer.html">Blockchain Explorer</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Enterprise</h4>
+        <ul>
+          <li><a href="enterprise.html">Recycler Marketplace</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      &copy; 2026 SecureWipe Platform. Built for Ministry of Mines & Enterprise Asset Sanitization. All rights reserved.
+    </div>
+  </footer>
+</body>
+</html>

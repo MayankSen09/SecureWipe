@@ -136,6 +136,16 @@ def read_root():
     return {"status": "ok", "message": "SecureWipe Verification & PDF Generator API is operational."}
 
 
+@app.get("/{page_name}.html")
+def render_page(page_name: str):
+    file_path = WEB_DIR / f"{page_name}.html"
+    if not file_path.exists():
+        file_path = BASE_DIR / f"{page_name}.html"
+    if file_path.exists():
+        return HTMLResponse(content=file_path.read_text(encoding="utf-8", errors="replace"))
+    raise HTTPException(status_code=404, detail=f"Page {page_name}.html not found.")
+
+
 @app.get("/api/v1/health")
 def health_check():
     chain = _load_chain()

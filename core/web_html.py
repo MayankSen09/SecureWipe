@@ -168,6 +168,36 @@ WEB_HTML = """<!DOCTYPE html>
       color: var(--text-main);
     }
 
+    /* Cinematic Text Scramble & Interactive Glitch Reveal */
+    .scramble-glitch-text {
+      display: inline-block;
+      user-select: none;
+      cursor: pointer;
+    }
+
+    .scramble-char {
+      display: inline-block;
+      transition: color 0.35s ease, transform 0.35s ease, text-shadow 0.35s ease;
+      will-change: transform, color, text-shadow;
+    }
+
+    .scramble-char.is-scrambling {
+      color: var(--accent-blue);
+      text-shadow: 0 0 8px rgba(0, 113, 227, 0.5), 0 0 16px rgba(0, 113, 227, 0.3);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .scramble-char.is-hovered {
+      color: #0071e3;
+      transform: translateY(-2px) scale(1.06);
+      text-shadow: 0 0 10px rgba(0, 113, 227, 0.6), 2px 0 #ff0055, -2px 0 #00e5ff;
+    }
+
+    .scramble-space {
+      display: inline;
+      white-space: pre;
+    }
+
     .hero p {
       font-size: 1.2rem;
       color: var(--text-muted);
@@ -210,6 +240,155 @@ WEB_HTML = """<!DOCTYPE html>
 
     .btn-secondary:hover {
       background: rgba(0, 113, 227, 0.05);
+    }
+
+    /* ── Designer UI Button System (Modern Enterprise SaaS) ── */
+    .btn-primary,
+    .btn-secondary,
+    .wallet-btn,
+    .search-btn,
+    .btn-download-pdf,
+    .btn-view-qr,
+    .hud-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      padding: 0.85rem 1.85rem;
+      border-radius: 14px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      letter-spacing: -0.01em;
+      text-decoration: none;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      overflow: hidden;
+      user-select: none;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: transform, box-shadow, background-color;
+    }
+
+    /* Light Shimmer Sweep Effect */
+    .btn-primary::after,
+    .btn-secondary::after,
+    .wallet-btn::after,
+    .search-btn::after,
+    .btn-download-pdf::after,
+    .btn-view-qr::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -150%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        115deg,
+        transparent 20%,
+        rgba(255, 255, 255, 0.25) 50%,
+        transparent 80%
+      );
+      transition: all 0.6s ease;
+      pointer-events: none;
+    }
+
+    /* Hover Shimmer Trigger */
+    .btn-primary:hover::after,
+    .btn-secondary:hover::after,
+    .wallet-btn:hover::after,
+    .search-btn:hover::after,
+    .btn-download-pdf:hover::after,
+    .btn-view-qr:hover::after {
+      left: 150%;
+    }
+
+    /* Active Press Micro-interaction */
+    .btn-primary:active,
+    .btn-secondary:active,
+    .wallet-btn:active,
+    .search-btn:active,
+    .btn-download-pdf:active,
+    .btn-view-qr:active {
+      transform: scale(0.97) translateY(0) !important;
+    }
+
+    /* Primary Button Styling */
+    .btn-primary {
+      background: linear-gradient(135deg, #0071e3 0%, #0055b5 100%);
+      color: #ffffff !important;
+      box-shadow: 0 4px 14px rgba(0, 113, 227, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #0077ed 0%, #005cb8 100%);
+      box-shadow: 0 8px 25px rgba(0, 113, 227, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px) scale(1.015);
+    }
+
+    /* Secondary Button Styling */
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.85);
+      color: var(--text-main) !important;
+      border: 1px solid var(--border-color) !important;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .btn-secondary:hover {
+      background: #ffffff;
+      border-color: rgba(0, 113, 227, 0.4) !important;
+      color: var(--accent-blue) !important;
+      box-shadow: 0 6px 20px rgba(0, 113, 227, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04);
+      transform: translateY(-2px) scale(1.015);
+    }
+
+    /* Wallet Button Custom Polish */
+    .wallet-btn {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color) !important;
+      border-radius: 99px !important;
+      padding: 0.5rem 1.15rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-main);
+    }
+
+    .wallet-btn:hover {
+      background: #ffffff;
+      border-color: rgba(0, 113, 227, 0.3) !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+      transform: translateY(-1px);
+    }
+
+    /* Search Button Custom Polish */
+    .search-btn {
+      background: linear-gradient(135deg, #0071e3 0%, #0055b5 100%);
+      color: white !important;
+      border-radius: 14px;
+      padding: 0 1.85rem;
+    }
+
+    .search-btn:hover {
+      box-shadow: 0 6px 20px rgba(0, 113, 227, 0.4);
+      transform: translateY(-2px);
+    }
+
+    /* Icon Motion inside buttons */
+    .btn-primary svg,
+    .btn-secondary svg,
+    .search-btn svg,
+    .btn-download-pdf svg,
+    .btn-view-qr svg {
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn-primary:hover svg,
+    .btn-secondary:hover svg,
+    .search-btn:hover svg,
+    .btn-download-pdf:hover svg,
+    .btn-view-qr:hover svg {
+      transform: translateX(2px);
     }
 
     /* ── Animated Terminal ── */
@@ -963,10 +1142,11 @@ WEB_HTML = """<!DOCTYPE html>
         SecureWipe
       </a>
       <div class="nav-links">
-        <a href="#generator">PDF & QR Generator</a>
-        <a href="#bento">Features & Tech</a>
-        <a href="#cli">CLI Tool</a>
-        <a href="#verify">Verification App</a>
+        <a href="index.html" class="active">Home</a>
+        <a href="products.html">Sanitization Engines</a>
+        <a href="verify.html">Audit Verification</a>
+        <a href="explorer.html">Ledger Explorer</a>
+        <a href="enterprise.html">Enterprise Fleet</a>
       </div>
       <button class="wallet-btn" id="walletBtn" onclick="connectWallet()">
         <span class="dot"></span>
@@ -979,7 +1159,7 @@ WEB_HTML = """<!DOCTYPE html>
   <header class="hero">
     <div class="hero-content">
       <div class="hero-text">
-        <h1 class="animate-on-scroll">Verifiable IT Asset Sanitization.</h1>
+        <h1 id="heroHeading" class="scramble-glitch-text animate-on-scroll" data-text="Verifiable IT Asset Sanitization.">Verifiable IT Asset Sanitization.</h1>
         <p class="animate-on-scroll">Unlocking India's ₹50,000 Crore idle e-waste assets. Military-grade data wiping combined with signed PDF certificates & QR codes anchored on blockchain.</p>
         <div class="hero-ctas animate-on-scroll">
           <a href="#generator" class="btn-primary">Generate PDF Cert</a>
@@ -1820,11 +2000,147 @@ WEB_HTML = """<!DOCTYPE html>
       }
     }
 
+    // --- Cinematic Glitch Scramble Text Engine ---
+    class ScrambleGlitchText {
+      constructor(element, options = {}) {
+        this.el = element;
+        this.originalText = options.text || this.el.getAttribute('data-text') || this.el.innerText.trim();
+        this.chars = options.chars || '!@#$%^&*()_+-=[]{}|;:,.<>?/0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ';
+        this.scrambleDuration = options.duration || 1400;
+        this.hoverRadius = options.hoverRadius || 2;
+        this.isAnimating = false;
+        this.spans = [];
+        this.init();
+      }
+
+      init() {
+        this.buildCharSpans();
+        this.bindEvents();
+        this.triggerEnterAnimation();
+      }
+
+      buildCharSpans() {
+        this.el.innerHTML = '';
+        this.spans = [];
+        const words = this.originalText.split(' ');
+        words.forEach((word, wIdx) => {
+          const wordWrapper = document.createElement('span');
+          wordWrapper.style.display = 'inline-block';
+          wordWrapper.style.whiteSpace = 'nowrap';
+
+          for (let i = 0; i < word.length; i++) {
+            const char = word[i];
+            const span = document.createElement('span');
+            span.className = 'scramble-char';
+            span.dataset.char = char;
+            span.innerText = char;
+            wordWrapper.appendChild(span);
+            this.spans.push(span);
+          }
+
+          this.el.appendChild(wordWrapper);
+
+          if (wIdx < words.length - 1) {
+            const spaceSpan = document.createElement('span');
+            spaceSpan.className = 'scramble-space';
+            spaceSpan.innerText = ' ';
+            this.el.appendChild(spaceSpan);
+          }
+        });
+      }
+
+      getRandomChar() {
+        return this.chars[Math.floor(Math.random() * this.chars.length)];
+      }
+
+      triggerEnterAnimation() {
+        if (this.isAnimating) return;
+        this.isAnimating = true;
+        
+        const startTime = performance.now();
+        const duration = this.scrambleDuration;
+        const totalSpans = this.spans.length;
+
+        const animate = (currentTime) => {
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const resolvedCount = Math.floor(progress * totalSpans);
+
+          this.spans.forEach((span, idx) => {
+            if (idx < resolvedCount) {
+              span.innerText = span.dataset.char;
+              span.classList.remove('is-scrambling');
+            } else {
+              span.innerText = this.getRandomChar();
+              span.classList.add('is-scrambling');
+            }
+          });
+
+          if (progress < 1) {
+            requestAnimationFrame(animate);
+          } else {
+            this.spans.forEach(span => {
+              span.innerText = span.dataset.char;
+              span.classList.remove('is-scrambling');
+            });
+            this.isAnimating = false;
+          }
+        };
+
+        requestAnimationFrame(animate);
+      }
+
+      scrambleSpan(span, duration = 800) {
+        if (span.dataset.timer) clearTimeout(parseInt(span.dataset.timer));
+        
+        span.classList.add('is-hovered', 'is-scrambling');
+        let count = 0;
+        const interval = setInterval(() => {
+          span.innerText = this.getRandomChar();
+          count++;
+          if (count > 8) {
+            clearInterval(interval);
+            span.innerText = span.dataset.char;
+            span.classList.remove('is-hovered', 'is-scrambling');
+          }
+        }, 90);
+
+        span.dataset.timer = setTimeout(() => {
+          clearInterval(interval);
+          span.innerText = span.dataset.char;
+          span.classList.remove('is-hovered', 'is-scrambling');
+        }, duration);
+      }
+
+      bindEvents() {
+        this.el.addEventListener('click', () => this.triggerEnterAnimation());
+
+        this.spans.forEach((span, idx) => {
+          span.addEventListener('mouseenter', () => {
+            if (this.isAnimating) return;
+            for (let offset = -this.hoverRadius; offset <= this.hoverRadius; offset++) {
+              const targetIdx = idx + offset;
+              if (targetIdx >= 0 && targetIdx < this.spans.length) {
+                const targetSpan = this.spans[targetIdx];
+                const delay = Math.abs(offset) * 100;
+                setTimeout(() => {
+                  this.scrambleSpan(targetSpan, 800 - delay);
+                }, delay);
+              }
+            }
+          });
+        });
+      }
+    }
+
     // Handle URL parameters on load
     window.addEventListener('DOMContentLoaded', () => {
       fetchBlocks();
       
-      
+      const headingEl = document.getElementById('heroHeading');
+      if (headingEl) {
+        new ScrambleGlitchText(headingEl);
+      }
       
       const urlParams = new URLSearchParams(window.location.search);
       const rawHash = urlParams.get('hash');

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blockchain Ledger Explorer — SecureWipe</title>
+  <meta name="description" content="Explore immutable data sanitization blocks, Merkle tree root hashes, and verification ledger anchors in real-time." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f5f5f7;
+      --bg-tertiary: #e8e8ed;
+      --text-main: #1d1d1f;
+      --text-muted: #86868b;
+      --accent-blue: #0071e3;
+      --accent-hover: #0077ed;
+      --border-color: rgba(0, 0, 0, 0.1);
+      --card-bg: #ffffff;
+      --success-green: #34c759;
+      --success-bg: #eafbe7;
+    }
+
+    [data-theme="dark"] {
+      --bg-primary: #0a0c10;
+      --bg-secondary: #12161f;
+      --bg-tertiary: #1a202c;
+      --text-main: #f0f6fc;
+      --text-muted: #8b949e;
+      --accent-blue: #2f81f7;
+      --accent-hover: #388bfd;
+      --border-color: rgba(255, 255, 255, 0.1);
+      --card-bg: #161b22;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; }
+    body { background: var(--bg-primary); color: var(--text-main); line-height: 1.6; }
+
+    /* Navigation */
+    nav { position: fixed; top: 0; width: 100%; z-index: 1000; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-color); }
+    [data-theme="dark"] nav { background: rgba(10, 12, 16, 0.85); }
+    .nav-container { max-width: 1200px; margin: 0 auto; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-size: 1.25rem; font-weight: 700; color: var(--text-main); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; }
+    .logo svg { color: var(--accent-blue); }
+    .nav-links { display: flex; gap: 2rem; align-items: center; }
+    .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+    .nav-links a:hover, .nav-links a.active { color: var(--accent-blue); }
+
+    .wallet-btn { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 99px; padding: 0.5rem 1.15rem; font-size: 0.85rem; font-weight: 500; color: var(--text-main); cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; }
+    .dot { width: 8px; height: 8px; background: var(--success-green); border-radius: 50%; display: inline-block; }
+
+    /* Page Header */
+    .page-header { padding: 8rem 2rem 3rem; text-align: center; max-width: 900px; margin: 0 auto; }
+    .page-header h1 { font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem; }
+    .page-header p { font-size: 1.2rem; color: var(--text-muted); }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 2rem 6rem; }
+
+    /* Network Stats Bar */
+    .stats-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 3rem; }
+    @media(max-width: 768px) { .stats-bar { grid-template-columns: repeat(2, 1fr); } }
+    
+    .stat-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 18px; padding: 1.5rem; text-align: center; }
+    .stat-val { font-size: 1.8rem; font-weight: 800; color: var(--accent-blue); }
+    .stat-lbl { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-top: 0.3rem; }
+
+    /* Table Card */
+    .table-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 20px; padding: 2rem; box-shadow: 0 10px 40px rgba(0,0,0,0.04); }
+    .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .table-title { font-size: 1.3rem; font-weight: 700; }
+    
+    .table-search { background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 0.6rem 1rem; border-radius: 10px; font-size: 0.85rem; color: var(--text-main); outline: none; width: 280px; }
+
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
+    th { padding: 1rem; border-bottom: 1px solid var(--border-color); color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; }
+    td { padding: 1.1rem 1rem; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+    tr:hover td { background: var(--bg-secondary); }
+    
+    .hash-cell { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--accent-blue); text-decoration: none; }
+    .hash-cell:hover { text-decoration: underline; }
+
+    .badge-status { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.25rem 0.65rem; border-radius: 99px; font-size: 0.75rem; font-weight: 700; background: var(--success-bg); color: #0c5a21; }
+
+    /* Footer */
+    footer { background: var(--bg-secondary); border-top: 1px solid var(--border-color); padding: 4rem 2rem 2rem; }
+    .footer-container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 2fr repeat(3, 1fr); gap: 3rem; margin-bottom: 3rem; }
+    @media(max-width: 768px) { .footer-container { grid-template-columns: 1fr; } }
+    .footer-col h4 { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 1rem; }
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
+    .footer-col a { color: var(--text-main); text-decoration: none; font-size: 0.9rem; }
+    .footer-col a:hover { color: var(--accent-blue); }
+    .footer-bottom { max-width: 1200px; margin: 0 auto; padding-top: 2rem; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav>
+    <div class="nav-container">
+      <a href="index.html" class="logo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          <path d="M9 12l2 2 4-4"></path>
+        </svg>
+        SecureWipe
+      </a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="products.html">Sanitization Engines</a>
+        <a href="verify.html">Audit Verification</a>
+        <a href="explorer.html" class="active">Ledger Explorer</a>
+        <a href="enterprise.html">Enterprise Fleet</a>
+      </div>
+      <button class="wallet-btn" onclick="alert('SecureWipe Node Connected to Mainnet.')">
+        <span class="dot"></span>
+        <span>Mainnet Node Active</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Page Header -->
+  <header class="page-header">
+    <h1>Blockchain Ledger Explorer</h1>
+    <p>Public Merkle tree audit log documenting every sanitized IT asset, timestamped hash anchor, and compliance validation block.</p>
+  </header>
+
+  <div class="container">
+    
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-val" id="statBlockCount">1,409</div>
+        <div class="stat-lbl">Block Height</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val">100.0%</div>
+        <div class="stat-lbl">Node Consensus</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val">12</div>
+        <div class="stat-lbl">Verification Peers</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val">0.0 ms</div>
+        <div class="stat-lbl">Ledger Sync Latency</div>
+      </div>
+    </div>
+
+    <!-- Block Stream Table -->
+    <div class="table-card">
+      <div class="table-header">
+        <div class="table-title">Recent Blockchain Anchors</div>
+        <input type="text" id="tableFilter" class="table-search" placeholder="Search by Serial or Hash..." onkeyup="filterTable()" />
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table id="blocksTable">
+          <thead>
+            <tr>
+              <th>Block Hash</th>
+              <th>Report ID</th>
+              <th>Device Serial</th>
+              <th>Method</th>
+              <th>Confidence</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="blocksTbody">
+            <tr>
+              <td><a href="verify.html?hash=ba487344ca51a6e42bcc5d584507cad28ae447a3d37f9910" class="hash-cell">ba487344ca51...</a></td>
+              <td>SW-REC-BA487344</td>
+              <td>S5YXNX0T654321</td>
+              <td>NIST SP 800-88 Purge</td>
+              <td><strong>100%</strong></td>
+              <td><span class="badge-status">Anchored</span></td>
+            </tr>
+            <tr>
+              <td><a href="verify.html?hash=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934c" class="hash-cell">e3b0c44298fc...</a></td>
+              <td>SW-REC-E3B0C442</td>
+              <td>SW-PROD-2026-X99</td>
+              <td>NIST SP 800-88 Clear</td>
+              <td><strong>100%</strong></td>
+              <td><span class="badge-status">Anchored</span></td>
+            </tr>
+            <tr>
+              <td><a href="verify.html?hash=9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f" class="hash-cell">9a8b7c6d5e4f...</a></td>
+              <td>SW-REC-9A8B7C6D</td>
+              <td>KGT30USB998877</td>
+              <td>Crypto Erase (AES-256)</td>
+              <td><strong>100%</strong></td>
+              <td><span class="badge-status">Anchored</span></td>
+            </tr>
+            <tr>
+              <td><a href="verify.html?hash=1f2e3d4c5b6a798899aabbccddeeff001122334455667788" class="hash-cell">1f2e3d4c5b6a...</a></td>
+              <td>SW-REC-1F2E3D4C</td>
+              <td>WD-WCC7K4LN5220</td>
+              <td>ANSSI Palier 2</td>
+              <td><strong>100%</strong></td>
+              <td><span class="badge-status">Anchored</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-container">
+      <div>
+        <div class="logo" style="margin-bottom: 1rem;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
+          SecureWipe
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Verifiable IT Asset Sanitization & Circular Economy Platform for Enterprise Fleet Retirement.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Products</h4>
+        <ul>
+          <li><a href="products.html">Hardware Purge Engine</a></li>
+          <li><a href="products.html">File Shredder</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Verification</h4>
+        <ul>
+          <li><a href="verify.html">Audit Hash Lookup</a></li>
+          <li><a href="explorer.html">Blockchain Explorer</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Enterprise</h4>
+        <ul>
+          <li><a href="enterprise.html">Recycler Marketplace</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      &copy; 2026 SecureWipe Platform. Built for Ministry of Mines & Enterprise Asset Sanitization. All rights reserved.
+    </div>
+  </footer>
+
+  <script>
+    function fetchBlocksData() {
+      fetch('/api/blocks?limit=50')
+        .then(r => r.json())
+        .then(data => {
+          if (data && data.blocks && data.blocks.length > 0) {
+            document.getElementById('statBlockCount').innerText = data.total_blocks || data.blocks.length;
+            const tbody = document.getElementById('blocksTbody');
+            tbody.innerHTML = '';
+            data.blocks.forEach(b => {
+              const hash = b.block_hash || 'hash_placeholder';
+              const tr = document.createElement('tr');
+              tr.innerHTML = `
+                <td><a href="verify.html?hash=${hash}" class="hash-cell">${hash.substring(0, 12)}...</a></td>
+                <td>${b.report_id || 'SW-REC-' + hash.substring(0, 8).toUpperCase()}</td>
+                <td>${b.serial || 'SW-SN-123456'}</td>
+                <td>${b.method || 'NIST SP 800-88 Purge'}</td>
+                <td><strong>${b.confidence_score || 100}%</strong></td>
+                <td><span class="badge-status">Anchored</span></td>
+              `;
+              tbody.appendChild(tr);
+            });
+          }
+        })
+        .catch(() => {});
+    }
+
+    function filterTable() {
+      const q = document.getElementById('tableFilter').value.toLowerCase();
+      const rows = document.querySelectorAll('#blocksTbody tr');
+      rows.forEach(r => {
+        r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none';
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', fetchBlocksData);
+  </script>
+</body>
+</html>
