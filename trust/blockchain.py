@@ -80,8 +80,10 @@ def anchor(cert_path: str, block_info: dict = None) -> str:
 
     try:
         CHAIN_FILE.parent.mkdir(parents=True, exist_ok=True)
-        with open(CHAIN_FILE, "w", encoding="utf-8") as f:
+        tmp_file = CHAIN_FILE.with_suffix(".tmp")
+        with open(tmp_file, "w", encoding="utf-8") as f:
             json.dump(chain, f, indent=2)
+        os.replace(tmp_file, CHAIN_FILE)
     except (OSError, PermissionError):
         pass
 
