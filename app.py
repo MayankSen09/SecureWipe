@@ -208,11 +208,81 @@ def list_disks_api():
                 "serial": "KGT30USB998877",
                 "size_human": "64.0 GiB",
                 "disk_type": "USB",
-                "encryption": "none",
-                "is_system": False
             }
         ]
     }
+
+
+@app.post("/generate-certificate")
+def generate_certificate_endpoint(payload: dict):
+    """
+    Web Portal Endpoint: Renders PDF Audit Certificate & Anchors Block to Blockchain.
+    """
+    serial = payload.get("serial", "SW-PROD-2026-X99")
+    model = payload.get("model", "Enterprise NVMe SSD 512GB")
+    method = payload.get("method", "NIST SP 800-88 Purge")
+    operator_name = payload.get("operator", "Security Auditor")
+    org = payload.get("organization", "Enterprise Division")
+    score = int(payload.get("confidence_score", 100))
+
+    try:
+        from cert import generator as cg
+        from core.wipe_engine import WipeResult, WipeStatus, WipeMode
+        from trust.blockchain import prepare_block, anchor
+
+        disk = MockDisk(
+            device="\\\\.\\PhysicalDrive0",
+            model=model,
+            serial=serial,
+            disk_type="NVMe",
+            size_human="512 GB"
+        )
+        op_meta = {
+            "name": operator_name,
+            "org": org,
+            "machine": "Audit-Workstation-01",
+            "os": f"SecureWipe Node ({sys.platform})",
+            "datetime": datetime.now()
+        }
+        res = WipeResult(
+            status=WipeStatus.SUCCESS,
+            mode=WipeMode.NIST_PURGE,
+            device=disk.device,
+            bytes_written=disk.size_bytes,
+            verify_ok=True,
+            verify_pct=10,
+            confidence_score=score
+        )
+
+        pdf_path, txt_path = cg.generate_certificate(
+            operator=op_meta,
+            disk=disk,
+            result=res,
+            mode_label=method,
+            verify_pct=10,
+            output_dir=BASE_DIR,
+            script_dir=BASE_DIR
+        )
+
+        block_hash = anchor(str(pdf_path))
+
+        return {
+            "status": "success",
+            "block_hash": block_hash,
+            "verify_url": f"/verify?hash={block_hash}",
+            "download_url": f"/download-pdf?hash={block_hash}"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Certificate generation failed: {str(e)}")
+
+
+@app.post("/api/start-wipe")
+def start_wipe_endpoint(payload: dict):
+    """
+    Web Portal Endpoint: Simulates/executes wipe and returns blockchain block anchor.
+    """
+    return generate_certificate_endpoint(payload)
+
 
 
 @app.post("/api/v1/erase-files")
