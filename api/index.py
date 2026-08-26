@@ -1,7 +1,14 @@
 """
 SecureWipe — api/index.py
-Legacy entrypoint. Imports from root app.py.
+Vercel Serverless Function entrypoint.
 """
-from app import app
+import os
+import sys
+from pathlib import Path
 
-handler = app
+# Add project root to sys.path for Vercel execution environment
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+from app import app as app
