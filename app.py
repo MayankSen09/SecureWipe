@@ -102,10 +102,15 @@ def _normalize_hash(raw: str) -> str:
     return h
 
 
+import tempfile
+
+TMP_CHAIN_FILE = Path(tempfile.gettempdir()) / "chain.json"
+
 def _load_chain():
-    if CHAIN_FILE.exists():
+    target_file = TMP_CHAIN_FILE if TMP_CHAIN_FILE.exists() else CHAIN_FILE
+    if target_file.exists():
         try:
-            with open(CHAIN_FILE, "r", encoding="utf-8") as f:
+            with open(target_file, "r", encoding="utf-8") as f:
                 return json.load(f)
         except Exception:
             pass
@@ -254,13 +259,21 @@ def generate_certificate_endpoint(payload: dict):
             confidence_score=score
         )
 
+        output_dir = BASE_DIR
+        try:
+            test_file = BASE_DIR / ".write_test"
+            test_file.touch()
+            test_file.unlink()
+        except (OSError, PermissionError):
+            output_dir = Path(tempfile.gettempdir())
+
         pdf_path, txt_path = cg.generate_certificate(
             operator=op_meta,
             disk=disk,
             result=res,
             mode_label=method,
             verify_pct=10,
-            output_dir=BASE_DIR,
+            output_dir=output_dir,
             script_dir=BASE_DIR
         )
 
@@ -400,11 +413,13 @@ def download_pdf(hash: str = Query(..., description="Hash of the audit PDF certi
     clean_hash = _normalize_hash(hash)
     chain = _load_chain()
 
+    tmp_dir = Path(tempfile.gettempdir())
+
     for block in chain:
         if block.get("block_hash") == clean_hash or block.get("cert_pdf_hash") == clean_hash[:16]:
-            # Locate matching PDF in BASE_DIR
+            # Locate matching PDF in BASE_DIR or /tmp
             pattern = f"*{block.get('serial', 'S5YXNX0T654321')}*.pdf"
-            pdf_matches = list(BASE_DIR.glob(pattern))
+            pdf_matches = list(BASE_DIR.glob(pattern)) + list(tmp_dir.glob(pattern))
             if pdf_matches:
                 return FileResponse(
                     path=pdf_matches[0],
@@ -413,7 +428,7 @@ def download_pdf(hash: str = Query(..., description="Hash of the audit PDF certi
                 )
 
     # Return sample PDF if hash is demo/mock
-    all_pdfs = list(BASE_DIR.glob("*.pdf"))
+    all_pdfs = list(BASE_DIR.glob("*.pdf")) + list(tmp_dir.glob("*.pdf"))
     if all_pdfs:
         return FileResponse(
             path=all_pdfs[0],

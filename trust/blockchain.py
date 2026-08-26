@@ -21,10 +21,15 @@ def is_valid_sha256(hash_str: str) -> bool:
     clean_hash = hash_str.lower().removeprefix("0x") if hash_str.lower().startswith("0x") else hash_str.lower()
     return len(clean_hash) == 64 and all(c in "0123456789abcdef" for c in clean_hash)
 
+import tempfile
+
+TMP_CHAIN_FILE = Path(tempfile.gettempdir()) / "chain.json"
+
 def get_prev_hash() -> str:
-    if os.path.exists(CHAIN_FILE):
+    target_file = TMP_CHAIN_FILE if TMP_CHAIN_FILE.exists() else CHAIN_FILE
+    if os.path.exists(target_file):
         try:
-            with open(CHAIN_FILE, "r", encoding="utf-8") as f:
+            with open(target_file, "r", encoding="utf-8") as f:
                 chain = json.load(f)
                 if chain:
                     return chain[-1]["block_hash"]
@@ -64,9 +69,10 @@ def anchor(cert_path: str, block_info: dict = None) -> str:
         pdf_hash = hashlib.sha256(f.read()).hexdigest()
 
     chain = []
-    if os.path.exists(CHAIN_FILE):
+    target_file = TMP_CHAIN_FILE if TMP_CHAIN_FILE.exists() else CHAIN_FILE
+    if os.path.exists(target_file):
         try:
-            with open(CHAIN_FILE, "r", encoding="utf-8") as f:
+            with open(target_file, "r", encoding="utf-8") as f:
                 chain = json.load(f)
         except Exception:
             chain = []
@@ -85,7 +91,12 @@ def anchor(cert_path: str, block_info: dict = None) -> str:
             json.dump(chain, f, indent=2)
         os.replace(tmp_file, CHAIN_FILE)
     except (OSError, PermissionError):
-        pass
+        try:
+            TMP_CHAIN_FILE.parent.mkdir(parents=True, exist_ok=True)
+            with open(TMP_CHAIN_FILE, "w", encoding="utf-8") as f:
+                json.dump(chain, f, indent=2)
+        except Exception:
+            pass
 
 
     return block_info["block_hash"]
