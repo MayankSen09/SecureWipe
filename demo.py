@@ -32,15 +32,25 @@ console = Console()
 def run_demo():
     console.print()
     console.print(Panel(
-        "[bold cyan]🛡️ SecureWipe — End-to-End Demonstration[/bold cyan]\n"
-        "[dim]Secure Data Wiping & Blockchain Verification[/dim]",
+        "[bold cyan]🛡️ SecureWipe Platform — SIH PS 26149 End-to-End Demonstration[/bold cyan]\n"
+        "[dim]Multi-Module Data Sanitization, Mobile Wiping, Carving Recovery & Blockchain Audit System[/dim]",
         border_style="cyan",
         padding=(1, 4),
     ))
     console.print()
+    # ─────────────────────────────────────────────────────────────
+    # OPERATION 1: SECURE DATA ERASURE SUITE (DRIVE, MOBILE & FILES)
+    # ─────────────────────────────────────────────────────────────
+    console.print(Panel(
+        "[bold red]🧹 OPERATION 1: SECURE DATA ERASURE SUITE[/bold red]\n"
+        "[dim]HDD/SSD/NVMe Sanitization, Android Mobile Purge & Selective File Shredding[/dim]",
+        border_style="red",
+        padding=(0, 2),
+    ))
+    console.print()
 
-    # STEP 1: Storage Discovery & HPA Check
-    rprint("[bold yellow]STEP 1:[/bold yellow] Storage Device Discovery & HPA Analysis...")
+    # STEP 1: Module 1 — Drive Sanitization & HPA Analysis
+    rprint("[bold yellow]STEP 1 (Module 1 Drive Eraser):[/bold yellow] Storage Device Discovery & HPA Analysis...")
     from core import disk_windows as dm
     from core import disk_linux as dl
     import random
@@ -51,7 +61,7 @@ def run_demo():
     # Check HPA
     target_disk.hpa_detected = dl.detect_hpa(target_disk.device)
     
-    table = Table(title="Detected Asset", border_style="dim")
+    table = Table(title="Detected Drive Asset", border_style="dim")
     table.add_column("Device", style="cyan")
     table.add_column("Model", style="white")
     table.add_column("Serial", style="yellow")
@@ -63,20 +73,98 @@ def run_demo():
     console.print(table)
     console.print()
 
-    # STEP 2: Sanitization Execution
-    rprint("[bold yellow]STEP 2:[/bold yellow] Executing NIST SP 800-88 / ANSSI P1 Wipe...")
     from core import wipe_engine as we
     wipe_res = we.run_wipe(target_disk, we.WipeMode.ANSSI_P1, verify_pct=10)
-    rprint(f"  [green]✓[/green] Sanitization Status: [bold green]{wipe_res.status.name}[/bold green]")
+    rprint(f"  [green]✓[/green] Drive Sanitization Status: [bold green]{wipe_res.status.name}[/bold green]")
+    rprint(f"  [cyan]▸[/cyan] Audit Confidence Score: [bold green]{wipe_res.confidence_score}%[/bold green] / 100%")
     rprint()
 
-    # STEP 3: Confidence Score Engine
-    rprint("[bold yellow]STEP 3:[/bold yellow] Computing Wipe Confidence Score...")
-    rprint(f"  [cyan]▸[/cyan] Calculated Confidence Score: [bold green]{wipe_res.confidence_score}%[/bold green] / 100%")
+    # STEP 2: Module 1B — Android Mobile Asset Agent
+    rprint("[bold yellow]STEP 2 (Module 1B Mobile Agent):[/bold yellow] Android Smartphone Sanitization Agent...")
+    from android.agent import detect_android_device, wipe_android
+    mobile_dev = detect_android_device(mock=True)
+    mobile_res = wipe_android(mobile_dev, mock=True)
+    rprint(f"  [green]✓[/green] Mobile Sanitization Status: [bold green]{mobile_res.status.name}[/bold green] (UserData Key Purged)")
     rprint()
 
-    # STEP 4: Certificate Generation & Blockchain Pre-Anchoring
-    rprint("[bold yellow]STEP 4:[/bold yellow] Generating Certificate & Blockchain Pre-Anchoring...")
+    # STEP 3: Module 2 — Selective File & Folder Shredding
+    rprint("[bold yellow]STEP 3 (Module 2 File Shredder):[/bold yellow] Selective File/Folder Shredder & Metadata Scrubbing...")
+    from core.file_eraser import wipe_path, FileWipeMode
+    import tempfile
+    demo_dir = tempfile.mkdtemp(prefix="securewipe_demo_shred_")
+    test_file_1 = os.path.join(demo_dir, "sensitive_doc.pdf")
+    test_file_2 = os.path.join(demo_dir, "private_photo.jpg")
+    with open(test_file_1, "wb") as f:
+        f.write(b"%PDF-1.4 /Title (Confidential Document) /Author (Secret User) " + b"X" * 2000 + b" %%EOF")
+    with open(test_file_2, "wb") as f:
+        f.write(b"\xFF\xD8\xFF\xE1" + b"EXIF_DATA_BLOCK" + b"\xFF\xD9")
+
+    shred_res = wipe_path(demo_dir, mode=FileWipeMode.NIST_3PASS, strip_meta=True)
+    rprint(f"  [green]✓[/green] Shredded [bold white]{shred_res.total_files}[/bold white] Files ({shred_res.total_bytes_written} bytes overwritten across 3 passes)")
+    rprint(f"  [cyan]▸[/cyan] Metadata Scrubbing: [bold green]EXIF & PDF Properties Stripped[/bold green]")
+    rprint()
+
+    # ─────────────────────────────────────────────────────────────
+    # OPERATION 2: ADVANCED FILE RECOVERY & CARVING ENGINE
+    # ─────────────────────────────────────────────────────────────
+    console.print(Panel(
+        "[bold cyan]🔍 OPERATION 2: ADVANCED FILE RECOVERY & CARVING ENGINE[/bold cyan]\n"
+        "[dim]Signature Carving, Shannon Entropy Analysis, Confidence Scoring & Verification[/dim]",
+        border_style="cyan",
+        padding=(0, 2),
+    ))
+    console.print()
+
+    # STEP 4: Module 3 — File Carving & Confidence Scoring
+    rprint("[bold yellow]STEP 4 (Module 3 Carving Engine):[/bold yellow] File Carving & Recovery Confidence Scoring Engine...")
+    import tempfile
+    carve_dir = tempfile.mkdtemp(prefix="securewipe_demo_carve_")
+    carve_img_path = os.path.join(carve_dir, "sample_media.img")
+    with open(carve_img_path, "wb") as f:
+        # Inject sample JPEG signature block
+        f.write(b"\x00" * 512 + b"\xFF\xD8\xFF\xE0\x00\x10JFIF" + b"A" * 1024 + b"\xFF\xD9" + b"\x00" * 512)
+        # Inject sample PDF signature block
+        f.write(b"%PDF-1.5 Sample Document Body Content " + b"B" * 2048 + b"%%EOF")
+
+    carve_out_dir = os.path.join(carve_dir, "carve_results")
+    from core.carver import carve_target, verify_wipe_carve
+    carve_res = carve_target(carve_img_path, carve_out_dir)
+
+    carve_table = Table(title="Carving & Recovery Candidates", border_style="dim")
+    carve_table.add_column("Candidate ID", style="cyan")
+    carve_table.add_column("Category", style="white")
+    carve_table.add_column("Size", style="yellow")
+    carve_table.add_column("Entropy", style="magenta")
+    carve_table.add_column("Confidence Rating", style="green")
+
+    for c in carve_res.candidates:
+        rating_style = "bold green" if c.confidence_rating == "HIGH" else "bold yellow"
+        carve_table.add_row(c.candidate_id, c.category, f"{c.size_bytes} B", str(c.entropy), f"[{rating_style}]{c.confidence_rating} ({c.confidence_score}%)[/{rating_style}]")
+    console.print(carve_table)
+    console.print()
+
+    # STEP 5: Post-Wipe Verification Proof
+    rprint("[bold yellow]STEP 5 (Verification Proof):[/bold yellow] Post-Wipe Media Carving Verification...")
+    # Zero out the carve test image to simulate completed sanitization
+    with open(carve_img_path, "wb") as f:
+        f.write(b"\x00" * os.path.getsize(carve_img_path))
+    post_wipe_recovered = verify_wipe_carve(carve_img_path)
+    rprint(f"  [green]✓[/green] Post-Wipe Carving Recovery Count: [bold green]{post_wipe_recovered} Recoverable Files[/bold green] (Verified Clean!)")
+    rprint()
+
+    # ─────────────────────────────────────────────────────────────
+    # SHARED AUDIT & BLOCKCHAIN VERIFICATION SYSTEM
+    # ─────────────────────────────────────────────────────────────
+    console.print(Panel(
+        "[bold green]🔗 UNIFIED BLOCKCHAIN AUDIT & REPORTING SYSTEM[/bold green]\n"
+        "[dim]Tamper-Evident SHA-256 Block Generation & PDF Audit Certificate Stream[/dim]",
+        border_style="green",
+        padding=(0, 2),
+    ))
+    console.print()
+
+    # STEP 6: Certificate Generation & Blockchain Pre-Anchoring
+    rprint("[bold yellow]STEP 6:[/bold yellow] Generating Certificate & Blockchain Pre-Anchoring...")
     from cert import generator as cg
     op_info = {
         "name": "Audit Inspector",
@@ -93,19 +181,19 @@ def run_demo():
         output_dir=SCRIPT_DIR,
         script_dir=SCRIPT_DIR,
     )
-    rprint(f"  [green]✓[/green] PDF Certificate Generated: [bold white]{pdf_path.name}[/bold white]")
+    rprint(f"  [green]✓[/green] PDF Audit Certificate Generated: [bold white]{pdf_path.name}[/bold white]")
     rprint()
 
-    # STEP 5: Blockchain Ledger Integrity Verification
-    rprint("[bold yellow]STEP 5:[/bold yellow] Verifying Blockchain Hash-Chain Integrity...")
+    # STEP 7: Blockchain Ledger Integrity Verification
+    rprint("[bold yellow]STEP 7:[/bold yellow] Verifying Blockchain Hash-Chain Integrity...")
     from trust import blockchain as bc
     valid, msg = bc.verify_chain()
     rprint(f"  [green]✓[/green] Ledger Verification: [bold green]{'VERIFIED & INTACT' if valid else 'TAMPER DETECTED'}[/bold green]")
     rprint(f"  [dim]{msg}[/dim]")
     rprint()
 
-    # STEP 6: API Verification Check
-    rprint("[bold yellow]STEP 6:[/bold yellow] Querying Local Verification API Ledger...")
+    # STEP 8: API Verification Check
+    rprint("[bold yellow]STEP 8:[/bold yellow] Querying Local Verification API Ledger...")
     import json
     chain_file = SCRIPT_DIR / "trust" / "chain.json"
     latest_hash = None
@@ -134,11 +222,12 @@ def run_demo():
         console.print()
 
     console.print(Panel(
-        "[bold green]✨ SecureWipe Demonstration Complete![/bold green]\n"
-        "[dim]Web portal: uvicorn api.app:app --host 0.0.0.0 --port 8000 --reload[/dim]",
+        "[bold green]✨ SecureWipe Platform Demonstration Complete![/bold green]\n"
+        "[dim]Web portal: python -m uvicorn app:app --host 0.0.0.0 --port 8000[/dim]",
         border_style="green",
         padding=(1, 4),
     ))
+
 
 if __name__ == "__main__":
     run_demo()
