@@ -1,52 +1,60 @@
 """
 SecureWipe GUI — theme.py
-Couleurs, polices et constantes visuelles.
+Clean Light Mode palette matching web/index.html.
 """
 
-BG_DARK      = "#0a0e1a"
-BG_CARD      = "#111827"
-BG_INPUT     = "#1a2235"
-BG_HOVER     = "#1e2d45"
+# Backgrounds matching website (web/index.html)
+BG_DARK      = "#f5f5f7"   # Light secondary background (--bg-secondary)
+BG_CARD      = "#ffffff"   # Clean white card background (--bg-primary)
+BG_INPUT     = "#ffffff"   # White input background
+BG_HOVER     = "#e9e9ed"   # Light gray hover (--bg-tertiary)
 
-BLUE_PRIMARY = "#2a6abf"
-BLUE_LIGHT   = "#4a90d9"
-BLUE_DARK    = "#1a3a6a"
+# Accents (Apple / Web Portal Electric Blue)
+BLUE_PRIMARY = "#0071e3"   # Web accent blue (--accent-blue)
+BLUE_LIGHT   = "#0071e3"   # Electric blue
+BLUE_DARK    = "#005bb5"   # Accent hover / Deep blue
 
-CYAN         = "#00d4ff"
-RED_DANGER   = "#e74c3c"
+CYAN         = "#0071e3"
+RED_DANGER   = "#ff3b30"   # Danger red (--danger-red)
 RED_LIGHT    = "#ff6b6b"
-GREEN_OK     = "#27ae60"
-GREEN_LIGHT  = "#2ecc71"
-YELLOW_WARN  = "#f39c12"
+GREEN_OK     = "#34c759"   # Success green (--success-green)
+GREEN_DARK   = "#248a3d"
+YELLOW_WARN  = "#f59e0b"
 
-TEXT_PRIMARY = "#e8f0fe"
-TEXT_SECOND  = "#8899bb"
-TEXT_DIM     = "#445577"
+# Text hierarchy matching website
+TEXT_PRIMARY = "#1d1d1f"   # Dark graphite main text (--text-main)
+TEXT_SECOND  = "#515154"   # Secondary text
+TEXT_DIM     = "#86868b"   # Muted gray text (--text-muted)
 
-BORDER       = "#1e3a5f"
-SEPARATOR    = "#1a2a45"
+# Borders & Separators matching website
+BORDER       = "#d2d2d7"   # Crisp light border (--border-color)
+SEPARATOR    = "#e5e5ea"
 
+# Stepper colors
 STEP_ACTIVE    = BLUE_PRIMARY
 STEP_DONE      = GREEN_OK
-STEP_PENDING   = "#1e2d45"
+STEP_PENDING   = "#d2d2d7"
 
-WIN_W        = 1100
-WIN_H        = 720
-WIN_MIN_W    = 900
-WIN_MIN_H    = 640
+# Window dimensions
+WIN_W        = 1150
+WIN_H        = 750
+WIN_MIN_W    = 950
+WIN_MIN_H    = 660
 
-HEADER_H     = 70
+HEADER_H     = 72
 STEPPER_H    = 60
-FOOTER_H     = 64
+FOOTER_H     = 60
 CONTENT_PAD  = 24
-RADIUS       = 10
-RADIUS_SM    = 6
+RADIUS       = 14
+RADIUS_SM    = 8
+RADIUS_MD    = 16
 
+# Typography
 FONT_TITLE   = ("Segoe UI", 20, "bold")
 FONT_HEADING = ("Segoe UI", 14, "bold")
 FONT_BODY    = ("Segoe UI", 12)
 FONT_SMALL   = ("Segoe UI", 10)
-FONT_MONO    = ("Courier New", 10)
+FONT_MONO    = ("Consolas", 10)
 FONT_BTN     = ("Segoe UI", 12, "bold")
 FONT_STEP    = ("Segoe UI", 11, "bold")
 
