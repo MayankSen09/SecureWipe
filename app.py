@@ -457,3 +457,5 @@ def download_pdf(hash: str = Query(..., description="Hash of the audit PDF certi
 
     raise HTTPException(status_code=404, detail="Requested PDF audit certificate not found.")
 
+
+# TODO: modularize backend endpoints
