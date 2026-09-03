@@ -162,3 +162,5 @@ echo -e "  Web Server & Verification API: ${CYAN}python3 api/app.py${NC}"
 echo ""
 
 
+
+# Note: verify permissions before execution
